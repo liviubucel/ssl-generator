@@ -13,6 +13,8 @@ const ACME_DIRECTORIES: Record<string, string> = {
   zerossl: 'https://acme.zerossl.com/v2/DV90',
 };
 
+const USER_AGENT = 'ssl-generator/1.0';
+
 interface AcmeDirectory {
   newNonce: string;
   newAccount: string;
@@ -67,8 +69,24 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
   const directoryUrl = ACME_DIRECTORIES[ca];
   if (!directoryUrl) throw new Error(`Unknown CA: ${ca}`);
 
-  const resp = await fetch(directoryUrl);
-  if (!resp.ok) throw new Error(`Failed to fetch ACME directory: ${resp.status}`);
+  const resp = await fetch(directoryUrl, {
+    headers: {
+      'Accept': 'application/json',
+      'User-Agent': USER_AGENT,
+    },
+  });
+  if (!resp.ok) {
+    let detail = '';
+    try {
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.includes('text') || contentType.includes('json')) {
+        detail = await resp.text();
+      }
+    } catch { /* ignore */ }
+    throw new Error(
+      `Failed to fetch ACME directory from ${ca}: HTTP ${resp.status}${detail ? ' - ' + detail : ''}`
+    );
+  }
   const data = (await resp.json()) as Record<string, string>;
 
   return {

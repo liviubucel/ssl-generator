@@ -350,7 +350,11 @@
         challengesSection.classList.remove('hidden');
         showInfo('Set up the verification below, then click "Verify & Get Certificate".');
       } catch (err) {
-        showError(err.message);
+        let msg = err.message;
+        if (msg.includes('Failed to fetch ACME directory')) {
+          msg += '. The certificate authority may be temporarily unavailable. Please try again later or select a different CA.';
+        }
+        showError(msg);
       } finally {
         createBtn.disabled = false;
         createBtn.textContent = 'CREATE FREE SSL CERTIFICATE';
