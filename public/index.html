@@ -187,7 +187,8 @@
       <form id="order-form">
         <div class="form-group">
           <label for="domains">Enter domain name(s)*</label>
-          <input type="text" id="domains" name="domains" placeholder="yourdomain.com, www.yourdomain.com" required>
+          <input type="text" id="domains" name="domains" placeholder="yourdomain.com, *.yourdomain.com" required>
+          <small style="color:#888; font-size:12px; margin-top:4px; display:block;">Use *.yourdomain.com for wildcard certificates. Wildcards require DNS verification.</small>
         </div>
         <div class="form-group">
           <label for="email">Enter Email*</label>
@@ -280,6 +281,31 @@
         eabSection.classList.toggle('hidden', e.target.value !== 'zerossl');
       });
     });
+
+    // Wildcard detection: auto-switch to DNS-01 and disable HTTP-01
+    const domainsInput = document.getElementById('domains');
+    const httpRadio = document.querySelector('input[name="challengeType"][value="http-01"]');
+    const dnsRadio = document.querySelector('input[name="challengeType"][value="dns-01"]');
+
+    function hasWildcard() {
+      const val = domainsInput.value || '';
+      return val.split(',').some(d => d.trim().startsWith('*.'));
+    }
+
+    function updateChallengeOptions() {
+      if (hasWildcard()) {
+        dnsRadio.checked = true;
+        httpRadio.disabled = true;
+        httpRadio.parentElement.style.opacity = '0.5';
+        httpRadio.parentElement.title = 'Wildcard certificates require DNS verification';
+      } else {
+        httpRadio.disabled = false;
+        httpRadio.parentElement.style.opacity = '1';
+        httpRadio.parentElement.title = '';
+      }
+    }
+
+    domainsInput.addEventListener('input', updateChallengeOptions);
 
     // Show/hide helpers
     function showError(msg) {

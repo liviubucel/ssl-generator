@@ -369,7 +369,10 @@ async function getAuthorization(
 ): Promise<{ authorization: AcmeAuthorization; nonce: string }> {
   const result = await acmeRequest(url, '', privateKey, nonce, accountUrl, null);
 
-  const domain = result.data.identifier.value;
+  const identifierDomain = result.data.identifier.value;
+  const isWildcard = result.data.wildcard === true;
+  // Display domain includes wildcard prefix; base domain is used for DNS challenge name
+  const domain = isWildcard ? `*.${identifierDomain}` : identifierDomain;
   const expires = result.data.expires || '';
   const challenges: AcmeAuthorization['challenges'] = { http: null, dns: null };
 
@@ -388,7 +391,7 @@ async function getAuthorization(
         new TextEncoder().encode(keyAuth)
       );
       challenges.dns = {
-        name: `_acme-challenge.${domain}`,
+        name: `_acme-challenge.${identifierDomain}`,
         value: arrayBufferToBase64Url(hash),
         url: ch.url,
       };
