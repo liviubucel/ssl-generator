@@ -98,7 +98,10 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
 
 // Get a fresh nonce
 async function getNonce(nonceUrl: string): Promise<string> {
-  const resp = await fetch(nonceUrl, { method: 'HEAD' });
+  const resp = await fetch(nonceUrl, {
+    method: 'HEAD',
+    headers: { 'User-Agent': USER_AGENT },
+  });
   const nonce = resp.headers.get('Replay-Nonce');
   if (!nonce) throw new Error('Failed to get nonce');
   return nonce;
@@ -228,7 +231,10 @@ async function acmeRequest(
 
   const resp = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/jose+json' },
+    headers: {
+      'Content-Type': 'application/jose+json',
+      'User-Agent': USER_AGENT,
+    },
     body: body,
   });
 

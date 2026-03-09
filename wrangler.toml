@@ -5,3 +5,19 @@ compatibility_flags = ["nodejs_compat"]
 
 [assets]
 directory = "./public"
+
+# KV namespace for storing certificate data and auto-renewal schedules
+# Create with: wrangler kv namespace create SSL_STORE
+# Then replace the id below with the actual namespace ID
+# [[kv_namespaces]]
+# binding = "SSL_STORE"
+# id = "YOUR_KV_NAMESPACE_ID"
+
+# Cron trigger for auto-renewal (runs daily at 2:00 AM UTC)
+# [triggers]
+# crons = ["0 2 * * *"]
+
+# Secrets (set via Cloudflare dashboard > Workers > Settings > Variables and Secrets):
+# EAB_KID        - ZeroSSL EAB Key ID
+# EAB_HMAC_KEY   - ZeroSSL EAB HMAC Key
+# CF_API_TOKEN   - Cloudflare API token (Zone:DNS:Edit) for auto-renewal DNS management
