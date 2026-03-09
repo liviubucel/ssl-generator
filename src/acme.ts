@@ -322,11 +322,8 @@ async function createOrder(
     identifiers: domains.map((d) => ({ type: 'dns', value: d })),
   };
 
-  const orderUrl =
-    (directory as any).newOrder || (directory as any).newOrder;
-
   const result = await acmeRequest(
-    orderUrl,
+    directory.newOrder,
     payload,
     privateKey,
     nonce,
