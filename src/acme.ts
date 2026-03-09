@@ -67,8 +67,21 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
   const directoryUrl = ACME_DIRECTORIES[ca];
   if (!directoryUrl) throw new Error(`Unknown CA: ${ca}`);
 
-  const resp = await fetch(directoryUrl);
-  if (!resp.ok) throw new Error(`Failed to fetch ACME directory: ${resp.status}`);
+  const resp = await fetch(directoryUrl, {
+    headers: {
+      'Accept': 'application/json',
+      'User-Agent': 'ssl-generator/1.0',
+    },
+  });
+  if (!resp.ok) {
+    let detail = '';
+    try {
+      detail = await resp.text();
+    } catch { /* ignore */ }
+    throw new Error(
+      `Failed to fetch ACME directory from ${ca}: HTTP ${resp.status}${detail ? ' - ' + detail : ''}`
+    );
+  }
   const data = (await resp.json()) as Record<string, string>;
 
   return {
