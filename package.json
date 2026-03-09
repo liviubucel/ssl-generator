@@ -1,8 +1,15 @@
 {
-  "name": "greenlock",
+  "name": "ssl-generator",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd frontend && npm install && npm run build"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "echo 'Static assets ready'"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241018.0",
+    "typescript": "^5.6.3",
+    "wrangler": "^3.114.17"
   }
 }
