@@ -25,10 +25,25 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       align-self: flex-start;
     }
-    h1 { font-size: 28px; color: #2c3e50; margin-bottom: 16px; }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    h1 { font-size: 28px; color: #2c3e50; }
+    h2 { font-size: 20px; margin-bottom: 16px; }
     p.desc { color: #555; margin-bottom: 12px; font-size: 15px; }
     a { color: #c0392b; text-decoration: none; }
     a:hover { text-decoration: underline; }
+    .lang-select {
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #fff;
+    }
     .form-group { margin-bottom: 20px; }
     .form-group label {
       display: block;
@@ -48,9 +63,17 @@
       outline: none;
       border-color: #c0392b;
     }
+    .domain-input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .domain-input-row input { flex: 1; }
     .radio-group { display: flex; gap: 24px; margin-top: 4px; }
     .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 6px; cursor: pointer; }
     .radio-group input[type="radio"] { width: auto; }
+    .checkbox-group { margin-top: 4px; }
+    .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; }
+    .checkbox-group input[type="checkbox"] { width: auto; }
     .btn {
       display: inline-block;
       padding: 12px 40px;
@@ -73,6 +96,18 @@
     }
     .btn-secondary:hover { background: #1a252f; }
     .btn-sm { padding: 8px 16px; font-size: 13px; width: auto; }
+    .btn-wildcard {
+      padding: 10px 16px;
+      background: #8e44ad;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-wildcard:hover { background: #7d3c98; }
     .hidden { display: none; }
     .error { color: #c0392b; background: #ffeaea; border: 1px solid #f5c6cb; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
     .success { color: #155724; background: #d4edda; border: 1px solid #c3e6cb; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
@@ -161,20 +196,42 @@
       margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .eab-fields { margin-top: 8px; }
     .footer { text-align: center; margin-top: 24px; font-size: 13px; color: #888; }
     .step-list { padding-left: 20px; }
     .step-list li { margin-bottom: 8px; font-size: 14px; }
     .download-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .auto-renew-section {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .auto-renew-section h4 {
+      font-size: 15px;
+      margin-bottom: 12px;
+      color: #2c3e50;
+    }
+    .auto-renew-fields { margin-top: 12px; }
+    .auto-renew-fields .form-group { margin-bottom: 12px; }
+    .auto-renew-fields input[type="number"] { width: 80px; }
+    .auto-renew-fields input[type="email"] { width: 100%; }
+    small { color: #888; font-size: 12px; margin-top: 4px; display: block; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Free SSL Certificate Generator</h1>
-    <p class="desc">
+    <div class="top-bar">
+      <h1 data-i18n="title">Free SSL Certificate Generator</h1>
+      <select class="lang-select" id="lang-select" onchange="setLanguage(this.value)">
+        <option value="en">🇬🇧 English</option>
+        <option value="ro">🇷🇴 Română</option>
+      </select>
+    </div>
+    <p class="desc" data-i18n="desc1">
       Create a Free SSL Certificate in a few minutes (including Wildcard SSL).
     </p>
-    <p class="desc">
+    <p class="desc" data-i18n-html="desc2">
       Supported CAs: <strong>Let's Encrypt</strong> (90 days), <strong>Buypass</strong> (180 days), <strong>ZeroSSL</strong> (90 days).
     </p>
 
@@ -186,110 +243,309 @@
     <div id="order-form-section">
       <form id="order-form">
         <div class="form-group">
-          <label for="domains">Enter domain name(s)*</label>
-          <input type="text" id="domains" name="domains" placeholder="yourdomain.com, *.yourdomain.com" required>
-          <small style="color:#888; font-size:12px; margin-top:4px; display:block;">Use *.yourdomain.com for wildcard certificates. Wildcards require DNS verification.</small>
+          <label for="domains" data-i18n="domainLabel">Enter domain name(s)*</label>
+          <div class="domain-input-row">
+            <input type="text" id="domains" name="domains" placeholder="yourdomain.com" required>
+            <button type="button" class="btn-wildcard" id="wildcard-btn" onclick="toggleWildcard()" data-i18n="wildcardBtn">★ Wildcard</button>
+          </div>
+          <small data-i18n="domainHint">Use *.yourdomain.com for wildcard certificates. Wildcards require DNS verification.</small>
         </div>
         <div class="form-group">
-          <label for="email">Enter Email*</label>
+          <label for="email" data-i18n="emailLabel">Enter Email*</label>
           <input type="email" id="email" name="email" placeholder="youremail@gmail.com" required>
         </div>
         <div class="form-group">
-          <label>Certificate Authority</label>
+          <label data-i18n="caLabel">Certificate Authority</label>
           <div class="radio-group">
             <label><input type="radio" name="ca" value="letsencrypt" checked> Let's Encrypt</label>
             <label><input type="radio" name="ca" value="buypass"> Buypass</label>
             <label><input type="radio" name="ca" value="zerossl"> ZeroSSL</label>
           </div>
-        </div>
-        <div id="eab-section" class="form-group hidden eab-fields">
-          <p class="desc" style="font-size:13px; margin-bottom:10px;">
-            ZeroSSL requires External Account Binding credentials.
-            Get them from <a href="https://app.zerossl.com/developer" target="_blank" rel="noopener noreferrer">app.zerossl.com/developer</a>.
-          </p>
-          <div class="form-group">
-            <label for="eab-kid">EAB KID</label>
-            <input type="text" id="eab-kid" name="eabKid" placeholder="EAB Key ID">
-          </div>
-          <div class="form-group">
-            <label for="eab-hmac">EAB HMAC Key</label>
-            <input type="text" id="eab-hmac" name="eabHmacKey" placeholder="EAB HMAC Key">
-          </div>
+          <small id="zerossl-note" class="hidden" data-i18n="zerosslNote">ZeroSSL requires EAB credentials configured as server secrets.</small>
         </div>
         <div class="form-group">
-          <label>Verification Method</label>
+          <label data-i18n="verificationLabel">Verification Method</label>
           <div class="radio-group">
-            <label><input type="radio" name="challengeType" value="http-01" checked> HTTP</label>
+            <label id="http-label"><input type="radio" name="challengeType" value="http-01" checked> HTTP</label>
             <label><input type="radio" name="challengeType" value="dns-01"> DNS</label>
           </div>
         </div>
-        <button type="submit" class="btn" id="create-btn">CREATE FREE SSL CERTIFICATE</button>
+
+        <!-- Auto-Renewal Options -->
+        <div class="auto-renew-section">
+          <h4 data-i18n="autoRenewTitle">🔄 Auto-Renewal</h4>
+          <div class="checkbox-group">
+            <label>
+              <input type="checkbox" id="auto-renew" name="autoRenew">
+              <span data-i18n="autoRenewEnable">Enable automatic certificate renewal</span>
+            </label>
+          </div>
+          <small data-i18n="autoRenewHint">Certificate will be automatically renewed before expiry as long as DNS records are configured. Requires KV storage and CF_API_TOKEN secret.</small>
+          <div id="auto-renew-fields" class="auto-renew-fields hidden">
+            <div class="form-group">
+              <label data-i18n="notifyEmailLabel">Notification Email</label>
+              <input type="email" id="notify-email" name="notifyEmail" placeholder="notify@example.com">
+              <small data-i18n="notifyEmailHint">Receive notifications about renewal status (optional).</small>
+            </div>
+            <div class="form-group">
+              <label data-i18n="renewDaysLabel">Renew before expiry (days)</label>
+              <input type="number" id="renew-days" name="notifyDaysBefore" value="30" min="1" max="60">
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <button type="submit" class="btn" id="create-btn" data-i18n="createBtn">CREATE FREE SSL CERTIFICATE</button>
+        </div>
       </form>
     </div>
 
     <!-- Step 2: Challenges -->
     <div id="challenges-section" class="hidden">
-      <h2 style="font-size:20px; margin-bottom:16px;">Complete Domain Verification</h2>
+      <h2 data-i18n="challengeTitle">Complete Domain Verification</h2>
       <div id="challenges-list"></div>
-      <button class="btn btn-secondary" id="verify-btn">VERIFY &amp; GET CERTIFICATE</button>
+      <button class="btn btn-secondary" id="verify-btn" data-i18n="verifyBtn">VERIFY &amp; GET CERTIFICATE</button>
     </div>
 
     <!-- Step 3: Certificate -->
     <div id="cert-section" class="hidden cert-area">
-      <h2 style="font-size:20px; margin-bottom:16px;">Your SSL Certificate</h2>
+      <h2 data-i18n="certTitle">Your SSL Certificate</h2>
       <div class="download-btns">
-        <button class="btn btn-sm" onclick="downloadFile('cert')">Download Certificate</button>
-        <button class="btn btn-sm btn-secondary" onclick="downloadFile('key')">Download Private Key</button>
-        <button class="btn btn-sm btn-secondary" onclick="downloadFile('chain')">Download CA Bundle</button>
+        <button class="btn btn-sm" onclick="downloadFile('cert')" data-i18n="downloadCert">Download Certificate</button>
+        <button class="btn btn-sm btn-secondary" onclick="downloadFile('key')" data-i18n="downloadKey">Download Private Key</button>
+        <button class="btn btn-sm btn-secondary" onclick="downloadFile('chain')" data-i18n="downloadChain">Download CA Bundle</button>
       </div>
-      <label for="cert-output">Certificate (CRT)</label>
+      <label for="cert-output" data-i18n="certLabel">Certificate (CRT)</label>
       <textarea id="cert-output" readonly></textarea>
-      <label for="key-output">Private Key</label>
+      <label for="key-output" data-i18n="keyLabel">Private Key</label>
       <textarea id="key-output" readonly></textarea>
-      <label for="chain-output">CA Bundle / Intermediate Certificate</label>
+      <label for="chain-output" data-i18n="chainLabel">CA Bundle / Intermediate Certificate</label>
       <textarea id="chain-output" readonly></textarea>
       <div style="margin-top:16px;">
-        <button class="btn" onclick="resetForm()">Generate Another Certificate</button>
+        <button class="btn" onclick="resetForm()" data-i18n="generateAnother">Generate Another Certificate</button>
       </div>
     </div>
 
     <div class="footer">
-      <p>This tool uses the ACME protocol to generate SSL certificates.</p>
+      <p data-i18n="footer">This tool uses the ACME protocol to generate SSL certificates.</p>
     </div>
   </div>
 
   <script>
-    // State
-    let orderState = null;
+    // ========== i18n Translations ==========
+    const translations = {
+      en: {
+        title: 'Free SSL Certificate Generator',
+        desc1: 'Create a Free SSL Certificate in a few minutes (including Wildcard SSL).',
+        desc2: 'Supported CAs: <strong>Let\'s Encrypt</strong> (90 days), <strong>Buypass</strong> (180 days), <strong>ZeroSSL</strong> (90 days).',
+        domainLabel: 'Enter domain name(s)*',
+        domainHint: 'Use *.yourdomain.com for wildcard certificates. Wildcards require DNS verification.',
+        emailLabel: 'Enter Email*',
+        caLabel: 'Certificate Authority',
+        zerosslNote: 'ZeroSSL requires EAB credentials configured as server secrets.',
+        verificationLabel: 'Verification Method',
+        wildcardBtn: '★ Wildcard',
+        createBtn: 'CREATE FREE SSL CERTIFICATE',
+        autoRenewTitle: '🔄 Auto-Renewal',
+        autoRenewEnable: 'Enable automatic certificate renewal',
+        autoRenewHint: 'Certificate will be automatically renewed before expiry as long as DNS records are configured. Requires KV storage and CF_API_TOKEN secret.',
+        notifyEmailLabel: 'Notification Email',
+        notifyEmailHint: 'Receive notifications about renewal status (optional).',
+        renewDaysLabel: 'Renew before expiry (days)',
+        challengeTitle: 'Complete Domain Verification',
+        verifyBtn: 'VERIFY & GET CERTIFICATE',
+        certTitle: 'Your SSL Certificate',
+        downloadCert: 'Download Certificate',
+        downloadKey: 'Download Private Key',
+        downloadChain: 'Download CA Bundle',
+        certLabel: 'Certificate (CRT)',
+        keyLabel: 'Private Key',
+        chainLabel: 'CA Bundle / Intermediate Certificate',
+        generateAnother: 'Generate Another Certificate',
+        footer: 'This tool uses the ACME protocol to generate SSL certificates.',
+        httpVerification: 'HTTP Verification',
+        dnsVerification: 'DNS Verification',
+        dnsInstructions: 'Add a TXT record to your DNS:',
+        name: 'Name',
+        value: 'Value',
+        copy: 'Copy',
+        copied: 'Copied!',
+        downloadFile: 'Download File',
+        httpStep1: 'Download the verification file:',
+        httpStep2: 'Create the directory <code>.well-known/acme-challenge/</code> in your domain\'s root folder.',
+        httpStep3Pre: 'Upload the file to that directory so it\'s accessible at:',
+        noChallenge: 'No challenge available for this verification method.',
+        pending: 'Pending',
+        verified: 'Verified',
+        failed: 'Failed',
+        creating: 'Creating order...',
+        verifying: 'Verifying challenges...',
+        fillRequired: 'Please fill in all required fields.',
+        certSuccess: 'SSL Certificate generated successfully!',
+        verifyFailed: 'Verification not yet complete. Please ensure challenges are set up and try again.',
+        caUnavailable: '. The certificate authority may be temporarily unavailable. Please try again later or select a different CA.',
+        setupInfo: 'Set up the verification below, then click "Verify & Get Certificate".',
+        wildcardActive: '★ Wildcard ✓',
+        wildcardRequiresDns: 'Wildcard certificates require DNS verification',
+      },
+      ro: {
+        title: 'Generator Gratuit de Certificate SSL',
+        desc1: 'Creează un Certificat SSL Gratuit în câteva minute (inclusiv Wildcard SSL).',
+        desc2: 'CA-uri suportate: <strong>Let\'s Encrypt</strong> (90 zile), <strong>Buypass</strong> (180 zile), <strong>ZeroSSL</strong> (90 zile).',
+        domainLabel: 'Introduceți numele domeniului(ilor)*',
+        domainHint: 'Folosiți *.domeniultau.com pentru certificate wildcard. Wildcard-urile necesită verificare DNS.',
+        emailLabel: 'Introduceți Email*',
+        caLabel: 'Autoritate de Certificare',
+        zerosslNote: 'ZeroSSL necesită credențiale EAB configurate ca secrete pe server.',
+        verificationLabel: 'Metodă de Verificare',
+        wildcardBtn: '★ Wildcard',
+        createBtn: 'CREEAZĂ CERTIFICAT SSL GRATUIT',
+        autoRenewTitle: '🔄 Reînnoire Automată',
+        autoRenewEnable: 'Activează reînnoirea automată a certificatului',
+        autoRenewHint: 'Certificatul va fi reînnoit automat înainte de expirare atât timp cât înregistrările DNS sunt configurate. Necesită stocare KV și secretul CF_API_TOKEN.',
+        notifyEmailLabel: 'Email de Notificare',
+        notifyEmailHint: 'Primiți notificări despre starea reînnoirii (opțional).',
+        renewDaysLabel: 'Reînnoiește înainte de expirare (zile)',
+        challengeTitle: 'Completați Verificarea Domeniului',
+        verifyBtn: 'VERIFICĂ ȘI OBȚINE CERTIFICATUL',
+        certTitle: 'Certificatul SSL',
+        downloadCert: 'Descarcă Certificatul',
+        downloadKey: 'Descarcă Cheia Privată',
+        downloadChain: 'Descarcă Pachetul CA',
+        certLabel: 'Certificat (CRT)',
+        keyLabel: 'Cheie Privată',
+        chainLabel: 'Pachet CA / Certificat Intermediar',
+        generateAnother: 'Generează Alt Certificat',
+        footer: 'Acest instrument folosește protocolul ACME pentru a genera certificate SSL.',
+        httpVerification: 'Verificare HTTP',
+        dnsVerification: 'Verificare DNS',
+        dnsInstructions: 'Adăugați o înregistrare TXT în DNS:',
+        name: 'Nume',
+        value: 'Valoare',
+        copy: 'Copiază',
+        copied: 'Copiat!',
+        downloadFile: 'Descarcă Fișier',
+        httpStep1: 'Descărcați fișierul de verificare:',
+        httpStep2: 'Creați directorul <code>.well-known/acme-challenge/</code> în folderul rădăcină al domeniului.',
+        httpStep3Pre: 'Încărcați fișierul în acel director pentru a fi accesibil la:',
+        noChallenge: 'Nu este disponibilă nicio provocare pentru această metodă de verificare.',
+        pending: 'În așteptare',
+        verified: 'Verificat',
+        failed: 'Eșuat',
+        creating: 'Se creează comanda...',
+        verifying: 'Se verifică provocările...',
+        fillRequired: 'Vă rugăm să completați toate câmpurile obligatorii.',
+        certSuccess: 'Certificat SSL generat cu succes!',
+        verifyFailed: 'Verificarea nu este încă completă. Asigurați-vă că provocările sunt configurate și încercați din nou.',
+        caUnavailable: '. Autoritatea de certificare poate fi temporar indisponibilă. Încercați din nou mai târziu sau selectați alt CA.',
+        setupInfo: 'Configurați verificarea de mai jos, apoi faceți clic pe „Verifică și Obține Certificatul".',
+        wildcardActive: '★ Wildcard ✓',
+        wildcardRequiresDns: 'Certificatele wildcard necesită verificare DNS',
+      }
+    };
 
-    // DOM elements
-    const orderFormSection = document.getElementById('order-form-section');
-    const challengesSection = document.getElementById('challenges-section');
-    const certSection = document.getElementById('cert-section');
-    const orderForm = document.getElementById('order-form');
-    const errorMsg = document.getElementById('error-msg');
-    const successMsg = document.getElementById('success-msg');
-    const infoMsg = document.getElementById('info-msg');
-    const createBtn = document.getElementById('create-btn');
-    const verifyBtn = document.getElementById('verify-btn');
-    const challengesList = document.getElementById('challenges-list');
-    const eabSection = document.getElementById('eab-section');
+    let currentLang = localStorage.getItem('ssl-gen-lang') || 'en';
 
-    // CA selection changes
-    document.querySelectorAll('input[name="ca"]').forEach(radio => {
-      radio.addEventListener('change', (e) => {
-        eabSection.classList.toggle('hidden', e.target.value !== 'zerossl');
+    function t(key) {
+      return (translations[currentLang] && translations[currentLang][key]) || translations.en[key] || key;
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('ssl-gen-lang', lang);
+      document.documentElement.lang = lang;
+      document.getElementById('lang-select').value = lang;
+      applyTranslations();
+    }
+
+    function applyTranslations() {
+      // Text content translations
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        if (key) el.textContent = t(key);
+      });
+      // HTML translations (for bold text etc.)
+      document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n-html');
+        if (key) el.innerHTML = t(key);
+      });
+      // Update dynamic placeholder text
+      var domainsInput = document.getElementById('domains');
+      if (domainsInput) domainsInput.placeholder = currentLang === 'ro' ? 'domeniultau.com' : 'yourdomain.com';
+      var emailInput = document.getElementById('email');
+      if (emailInput) emailInput.placeholder = currentLang === 'ro' ? 'emailultau@gmail.com' : 'youremail@gmail.com';
+      var notifyInput = document.getElementById('notify-email');
+      if (notifyInput) notifyInput.placeholder = currentLang === 'ro' ? 'notificare@exemplu.com' : 'notify@example.com';
+      // Update page title
+      document.title = t('title');
+      // Update wildcard button state
+      updateWildcardButton();
+    }
+
+    // ========== State ==========
+    var orderState = null;
+
+    // ========== DOM Elements ==========
+    var orderFormSection = document.getElementById('order-form-section');
+    var challengesSection = document.getElementById('challenges-section');
+    var certSection = document.getElementById('cert-section');
+    var orderForm = document.getElementById('order-form');
+    var errorMsg = document.getElementById('error-msg');
+    var successMsg = document.getElementById('success-msg');
+    var infoMsg = document.getElementById('info-msg');
+    var createBtn = document.getElementById('create-btn');
+    var verifyBtn = document.getElementById('verify-btn');
+    var challengesList = document.getElementById('challenges-list');
+    var zerosslNote = document.getElementById('zerossl-note');
+
+    // ========== CA Selection ==========
+    document.querySelectorAll('input[name="ca"]').forEach(function(radio) {
+      radio.addEventListener('change', function(e) {
+        zerosslNote.classList.toggle('hidden', e.target.value !== 'zerossl');
       });
     });
 
-    // Wildcard detection: auto-switch to DNS-01 and disable HTTP-01
-    const domainsInput = document.getElementById('domains');
-    const httpRadio = document.querySelector('input[name="challengeType"][value="http-01"]');
-    const dnsRadio = document.querySelector('input[name="challengeType"][value="dns-01"]');
+    // ========== Wildcard Toggle ==========
+    var domainsInput = document.getElementById('domains');
+    var httpRadio = document.querySelector('input[name="challengeType"][value="http-01"]');
+    var dnsRadio = document.querySelector('input[name="challengeType"][value="dns-01"]');
 
     function hasWildcard() {
-      const val = domainsInput.value || '';
-      return val.split(',').some(d => d.trim().startsWith('*.'));
+      var val = domainsInput.value || '';
+      return val.split(',').some(function(d) { return d.trim().startsWith('*.'); });
+    }
+
+    function toggleWildcard() {
+      var val = domainsInput.value.trim();
+      if (hasWildcard()) {
+        // Remove wildcard prefix from all domains
+        domainsInput.value = val.split(',').map(function(d) {
+          d = d.trim();
+          return d.startsWith('*.') ? d.slice(2) : d;
+        }).join(', ');
+      } else {
+        // Add wildcard prefix
+        if (val && !val.includes('*.')) {
+          var baseDomain = val.split(',')[0].trim();
+          domainsInput.value = val + ', *.' + baseDomain;
+        } else if (!val) {
+          domainsInput.value = '*.';
+          domainsInput.focus();
+        }
+      }
+      updateChallengeOptions();
+      updateWildcardButton();
+    }
+
+    function updateWildcardButton() {
+      var btn = document.getElementById('wildcard-btn');
+      if (hasWildcard()) {
+        btn.textContent = t('wildcardActive');
+        btn.style.background = '#27ae60';
+      } else {
+        btn.textContent = t('wildcardBtn');
+        btn.style.background = '#8e44ad';
+      }
     }
 
     function updateChallengeOptions() {
@@ -297,7 +553,7 @@
         dnsRadio.checked = true;
         httpRadio.disabled = true;
         httpRadio.parentElement.style.opacity = '0.5';
-        httpRadio.parentElement.title = 'Wildcard certificates require DNS verification';
+        httpRadio.parentElement.title = t('wildcardRequiresDns');
       } else {
         httpRadio.disabled = false;
         httpRadio.parentElement.style.opacity = '1';
@@ -305,9 +561,20 @@
       }
     }
 
-    domainsInput.addEventListener('input', updateChallengeOptions);
+    domainsInput.addEventListener('input', function() {
+      updateChallengeOptions();
+      updateWildcardButton();
+    });
 
-    // Show/hide helpers
+    // ========== Auto-Renewal Toggle ==========
+    var autoRenewCheckbox = document.getElementById('auto-renew');
+    var autoRenewFields = document.getElementById('auto-renew-fields');
+
+    autoRenewCheckbox.addEventListener('change', function() {
+      autoRenewFields.classList.toggle('hidden', !this.checked);
+    });
+
+    // ========== Messages ==========
     function showError(msg) {
       errorMsg.textContent = msg;
       errorMsg.classList.remove('hidden');
@@ -332,35 +599,40 @@
       infoMsg.classList.add('hidden');
     }
 
-    // Create order
-    orderForm.addEventListener('submit', async (e) => {
+    // ========== HTML Escaping (XSS prevention) ==========
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+
+    // ========== Create Order ==========
+    orderForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       hideMessages();
 
-      const formData = new FormData(orderForm);
-      const data = {
+      var formData = new FormData(orderForm);
+      var data = {
         domains: formData.get('domains'),
         email: formData.get('email'),
         ca: formData.get('ca'),
-        eabKid: formData.get('eabKid') || undefined,
-        eabHmacKey: formData.get('eabHmacKey') || undefined,
       };
 
       if (!data.domains || !data.email) {
-        showError('Please fill in all required fields.');
+        showError(t('fillRequired'));
         return;
       }
 
       createBtn.disabled = true;
-      createBtn.innerHTML = '<span class="spinner"></span>Creating order...';
+      createBtn.innerHTML = '<span class="spinner"></span>' + escapeHtml(t('creating'));
 
       try {
-        const resp = await fetch('/api/order', {
+        var resp = await fetch('/api/order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
-        const result = await resp.json();
+        var result = await resp.json();
 
         if (!resp.ok || result.error) {
           throw new Error(result.error || 'Failed to create order');
@@ -369,125 +641,133 @@
         orderState = {
           ...result,
           challengeType: formData.get('challengeType'),
+          email: data.email,
+          autoRenew: autoRenewCheckbox.checked,
+          notifyEmail: formData.get('notifyEmail') || null,
+          notifyDaysBefore: parseInt(formData.get('notifyDaysBefore')) || 30,
         };
 
         renderChallenges(result.authorizations, formData.get('challengeType'));
         orderFormSection.classList.add('hidden');
         challengesSection.classList.remove('hidden');
-        showInfo('Set up the verification below, then click "Verify & Get Certificate".');
+        showInfo(t('setupInfo'));
       } catch (err) {
-        let msg = err.message;
+        var msg = err.message;
         if (msg.includes('Failed to fetch ACME directory')) {
-          msg += '. The certificate authority may be temporarily unavailable. Please try again later or select a different CA.';
+          msg += t('caUnavailable');
         }
         showError(msg);
       } finally {
         createBtn.disabled = false;
-        createBtn.textContent = 'CREATE FREE SSL CERTIFICATE';
+        createBtn.textContent = t('createBtn');
       }
     });
 
-    // Render challenges
+    // ========== Render Challenges ==========
     function renderChallenges(authorizations, challengeType) {
       challengesList.innerHTML = '';
 
-      authorizations.forEach((auth, idx) => {
-        const card = document.createElement('div');
+      authorizations.forEach(function(auth, idx) {
+        var card = document.createElement('div');
         card.className = 'challenge-card';
 
-        const statusText = auth.verified === null ? 'Pending' :
-                          auth.verified ? 'Verified' : 'Failed';
-        const statusClass = auth.verified === null ? 'status-pending' :
+        var statusText = auth.verified === null ? t('pending') :
+                          auth.verified ? t('verified') : t('failed');
+        var statusClass = auth.verified === null ? 'status-pending' :
                            auth.verified ? 'status-valid' : 'status-invalid';
 
-        let bodyHTML = '';
+        var bodyHTML = '';
+        var safeDomain = escapeHtml(auth.domain);
 
         if (challengeType === 'http-01' && auth.challenges.http) {
-          const http = auth.challenges.http;
-          bodyHTML = `
-            <div class="challenge-section">
-              <h4>HTTP Verification</h4>
-              <ol class="step-list">
-                <li>Download the verification file:
-                  <br><button class="copy-btn" style="margin-top:6px;" onclick="downloadVerificationFile(${idx})">Download File</button>
-                </li>
-                <li>Create the directory <code>.well-known/acme-challenge/</code> in your domain's root folder.</li>
-                <li>Upload the file to that directory so it's accessible at:
-                  <br><a href="http://${auth.domain}/.well-known/acme-challenge/${http.token}" target="_blank" rel="noopener noreferrer"
-                    style="word-break:break-all; color:#c0392b; font-size:13px;">
-                    http://${auth.domain}/.well-known/acme-challenge/${http.token}</a>
-                </li>
-              </ol>
-            </div>`;
+          var http = auth.challenges.http;
+          var safeToken = escapeHtml(http.token);
+          bodyHTML =
+            '<div class="challenge-section">' +
+              '<h4>' + escapeHtml(t('httpVerification')) + '</h4>' +
+              '<ol class="step-list">' +
+                '<li>' + escapeHtml(t('httpStep1')) +
+                  '<br><button class="copy-btn" style="margin-top:6px;" onclick="downloadVerificationFile(' + idx + ')">' + escapeHtml(t('downloadFile')) + '</button>' +
+                '</li>' +
+                '<li>' + t('httpStep2') + '</li>' +
+                '<li>' + escapeHtml(t('httpStep3Pre')) +
+                  '<br><a href="http://' + safeDomain + '/.well-known/acme-challenge/' + safeToken + '" target="_blank" rel="noopener noreferrer"' +
+                    ' style="word-break:break-all; color:#c0392b; font-size:13px;">' +
+                    'http://' + safeDomain + '/.well-known/acme-challenge/' + safeToken + '</a>' +
+                '</li>' +
+              '</ol>' +
+            '</div>';
         } else if (challengeType === 'dns-01' && auth.challenges.dns) {
-          const dns = auth.challenges.dns;
-          bodyHTML = `
-            <div class="challenge-section">
-              <h4>DNS Verification</h4>
-              <p style="font-size:14px; margin-bottom:10px;">Add a TXT record to your DNS:</p>
-              <div style="margin-bottom:8px;">
-                <label style="font-size:13px; font-weight:600; margin-bottom:4px; display:block;">Name</label>
-                <div class="copy-field">
-                  <input type="text" value="${dns.name}" readonly>
-                  <button class="copy-btn" onclick="copyText(this, '${dns.name}')">Copy</button>
-                </div>
-              </div>
-              <div>
-                <label style="font-size:13px; font-weight:600; margin-bottom:4px; display:block;">Value</label>
-                <div class="copy-field">
-                  <input type="text" value="${dns.value}" readonly>
-                  <button class="copy-btn" onclick="copyText(this, '${dns.value}')">Copy</button>
-                </div>
-              </div>
-            </div>`;
+          var dns = auth.challenges.dns;
+          var safeName = escapeHtml(dns.name);
+          var safeValue = escapeHtml(dns.value);
+          bodyHTML =
+            '<div class="challenge-section">' +
+              '<h4>' + escapeHtml(t('dnsVerification')) + '</h4>' +
+              '<p style="font-size:14px; margin-bottom:10px;">' + escapeHtml(t('dnsInstructions')) + '</p>' +
+              '<div style="margin-bottom:8px;">' +
+                '<label style="font-size:13px; font-weight:600; margin-bottom:4px; display:block;">' + escapeHtml(t('name')) + '</label>' +
+                '<div class="copy-field">' +
+                  '<input type="text" value="' + safeName + '" readonly>' +
+                  '<button class="copy-btn" onclick="copyText(this, \'' + safeName + '\')">' + escapeHtml(t('copy')) + '</button>' +
+                '</div>' +
+              '</div>' +
+              '<div>' +
+                '<label style="font-size:13px; font-weight:600; margin-bottom:4px; display:block;">' + escapeHtml(t('value')) + '</label>' +
+                '<div class="copy-field">' +
+                  '<input type="text" value="' + safeValue + '" readonly>' +
+                  '<button class="copy-btn" onclick="copyText(this, \'' + safeValue + '\')">' + escapeHtml(t('copy')) + '</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
         } else {
-          bodyHTML = '<div class="challenge-section"><p>No challenge available for this verification method.</p></div>';
+          bodyHTML = '<div class="challenge-section"><p>' + escapeHtml(t('noChallenge')) + '</p></div>';
         }
 
-        card.innerHTML = `
-          <div class="challenge-header">
-            <h3>${auth.domain}</h3>
-            <span class="status-badge ${statusClass}">${statusText}</span>
-          </div>
-          <div class="challenge-body">${bodyHTML}</div>`;
+        card.innerHTML =
+          '<div class="challenge-header">' +
+            '<h3>' + safeDomain + '</h3>' +
+            '<span class="status-badge ' + statusClass + '">' + escapeHtml(statusText) + '</span>' +
+          '</div>' +
+          '<div class="challenge-body">' + bodyHTML + '</div>';
 
         challengesList.appendChild(card);
       });
     }
 
-    // Copy text to clipboard
+    // ========== Copy Text ==========
     function copyText(btn, text) {
-      navigator.clipboard.writeText(text).then(() => {
-        const orig = btn.textContent;
-        btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = orig, 2000);
+      navigator.clipboard.writeText(text).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = t('copied');
+        setTimeout(function() { btn.textContent = orig; }, 2000);
       });
     }
 
-    // Download verification file
+    // ========== Download Verification File ==========
     function downloadVerificationFile(idx) {
       if (!orderState) return;
-      const auth = orderState.authorizations[idx];
+      var auth = orderState.authorizations[idx];
       if (!auth.challenges.http) return;
-      const blob = new Blob([auth.challenges.http.content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      var blob = new Blob([auth.challenges.http.content], { type: 'text/plain' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
       a.href = url;
       a.download = auth.challenges.http.token;
       a.click();
       URL.revokeObjectURL(url);
     }
 
-    // Verify challenges
-    verifyBtn.addEventListener('click', async () => {
+    // ========== Verify Challenges ==========
+    verifyBtn.addEventListener('click', async function() {
       if (!orderState) return;
       hideMessages();
 
       verifyBtn.disabled = true;
-      verifyBtn.innerHTML = '<span class="spinner"></span>Verifying challenges...';
+      verifyBtn.innerHTML = '<span class="spinner"></span>' + escapeHtml(t('verifying'));
 
       try {
-        const resp = await fetch('/api/order/verify', {
+        var resp = await fetch('/api/order/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -498,9 +778,13 @@
             authorizations: orderState.authorizations,
             ca: orderState.ca,
             challengeType: orderState.challengeType,
+            email: orderState.email,
+            autoRenew: orderState.autoRenew,
+            notifyEmail: orderState.notifyEmail,
+            notifyDaysBefore: orderState.notifyDaysBefore,
           }),
         });
-        const result = await resp.json();
+        var result = await resp.json();
 
         if (!resp.ok || result.error) {
           throw new Error(result.error || 'Verification failed');
@@ -513,21 +797,21 @@
 
           challengesSection.classList.add('hidden');
           certSection.classList.remove('hidden');
-          showSuccess('SSL Certificate generated successfully!');
+          showSuccess(t('certSuccess'));
         } else {
-          showError(result.error || 'Verification not yet complete. Please ensure challenges are set up and try again.');
+          showError(result.error || t('verifyFailed'));
         }
       } catch (err) {
         showError(err.message);
       } finally {
         verifyBtn.disabled = false;
-        verifyBtn.textContent = 'VERIFY & GET CERTIFICATE';
+        verifyBtn.textContent = t('verifyBtn');
       }
     });
 
-    // Download certificate files
+    // ========== Download Files ==========
     function downloadFile(type) {
-      let content, filename;
+      var content, filename;
       switch (type) {
         case 'cert':
           content = document.getElementById('cert-output').value;
@@ -544,16 +828,16 @@
         default: return;
       }
       if (!content) return;
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      var blob = new Blob([content], { type: 'text/plain' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
       a.href = url;
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
     }
 
-    // Reset form
+    // ========== Reset Form ==========
     function resetForm() {
       orderState = null;
       hideMessages();
@@ -561,7 +845,14 @@
       challengesSection.classList.add('hidden');
       certSection.classList.add('hidden');
       orderForm.reset();
+      autoRenewFields.classList.add('hidden');
+      zerosslNote.classList.add('hidden');
+      updateWildcardButton();
+      updateChallengeOptions();
     }
+
+    // ========== Initialize ==========
+    setLanguage(currentLang);
   </script>
 </body>
 </html>
