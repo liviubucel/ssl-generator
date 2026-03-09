@@ -29,6 +29,8 @@ export interface RenewalConfig {
 }
 
 const RENEWAL_PREFIX = 'renewal:';
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const DNS_PROPAGATION_DELAY_MS = 15000;
 
 export async function saveRenewalConfig(
   kv: KVNamespace,
@@ -76,15 +78,18 @@ function shouldRenew(config: RenewalConfig): boolean {
   if (config.ca === 'buypass') validityDays = 180;
 
   const expiryDate = new Date(
-    created.getTime() + validityDays * 24 * 60 * 60 * 1000
+    created.getTime() + validityDays * MS_PER_DAY
   );
   const renewalDate = new Date(
-    expiryDate.getTime() - config.notifyDaysBefore * 24 * 60 * 60 * 1000
+    expiryDate.getTime() - config.notifyDaysBefore * MS_PER_DAY
   );
 
   return now >= renewalDate;
 }
 
+// Extract the base domain for Cloudflare zone lookup.
+// Note: This simple approach may not work for multi-level TLDs like co.uk.
+// For production use, consider a public suffix list library.
 function getBaseDomain(domain: string): string {
   const d = domain.startsWith('*.') ? domain.slice(2) : domain;
   const parts = d.split('.');
@@ -140,7 +145,7 @@ export async function handleScheduledRenewal(env: Env): Promise<void> {
           }
 
           // Wait for DNS propagation
-          await new Promise((resolve) => setTimeout(resolve, 15000));
+          await new Promise((resolve) => setTimeout(resolve, DNS_PROPAGATION_DELAY_MS));
 
           // Verify and get certificate
           const verifyResult = await handleVerifyOrder({

@@ -524,8 +524,8 @@
           return d.startsWith('*.') ? d.slice(2) : d;
         }).join(', ');
       } else {
-        // Add wildcard prefix
-        if (val && !val.includes('*.')) {
+        // Add wildcard for the first domain
+        if (val && !hasWildcard()) {
           var baseDomain = val.split(',')[0].trim();
           domainsInput.value = val + ', *.' + baseDomain;
         } else if (!val) {
@@ -604,6 +604,10 @@
       var div = document.createElement('div');
       div.appendChild(document.createTextNode(str));
       return div.innerHTML;
+    }
+
+    function escapeJsString(str) {
+      return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
     }
 
     // ========== Create Order ==========
@@ -701,6 +705,8 @@
           var dns = auth.challenges.dns;
           var safeName = escapeHtml(dns.name);
           var safeValue = escapeHtml(dns.value);
+          var jsName = escapeJsString(dns.name);
+          var jsValue = escapeJsString(dns.value);
           bodyHTML =
             '<div class="challenge-section">' +
               '<h4>' + escapeHtml(t('dnsVerification')) + '</h4>' +
@@ -709,14 +715,14 @@
                 '<label style="font-size:13px; font-weight:600; margin-bottom:4px; display:block;">' + escapeHtml(t('name')) + '</label>' +
                 '<div class="copy-field">' +
                   '<input type="text" value="' + safeName + '" readonly>' +
-                  '<button class="copy-btn" onclick="copyText(this, \'' + safeName + '\')">' + escapeHtml(t('copy')) + '</button>' +
+                  '<button class="copy-btn" onclick="copyText(this, \'' + jsName + '\')">' + escapeHtml(t('copy')) + '</button>' +
                 '</div>' +
               '</div>' +
               '<div>' +
                 '<label style="font-size:13px; font-weight:600; margin-bottom:4px; display:block;">' + escapeHtml(t('value')) + '</label>' +
                 '<div class="copy-field">' +
                   '<input type="text" value="' + safeValue + '" readonly>' +
-                  '<button class="copy-btn" onclick="copyText(this, \'' + safeValue + '\')">' + escapeHtml(t('copy')) + '</button>' +
+                  '<button class="copy-btn" onclick="copyText(this, \'' + jsValue + '\')">' + escapeHtml(t('copy')) + '</button>' +
                 '</div>' +
               '</div>' +
             '</div>';
