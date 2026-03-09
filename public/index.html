@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free SSL Certificate Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #d5d0ca;
+      color: #333;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .container {
+      background: #fff;
+      max-width: 800px;
+      width: 100%;
+      padding: 40px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      align-self: flex-start;
+    }
+    h1 { font-size: 28px; color: #2c3e50; margin-bottom: 16px; }
+    p.desc { color: #555; margin-bottom: 12px; font-size: 15px; }
+    a { color: #c0392b; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 15px;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #c0392b;
+    }
+    .radio-group { display: flex; gap: 24px; margin-top: 4px; }
+    .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .radio-group input[type="radio"] { width: auto; }
+    .btn {
+      display: inline-block;
+      padding: 12px 40px;
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn:hover { background: #a93226; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-secondary {
+      background: #2c3e50;
+      margin-top: 10px;
+    }
+    .btn-secondary:hover { background: #1a252f; }
+    .btn-sm { padding: 8px 16px; font-size: 13px; width: auto; }
+    .hidden { display: none; }
+    .error { color: #c0392b; background: #ffeaea; border: 1px solid #f5c6cb; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+    .success { color: #155724; background: #d4edda; border: 1px solid #c3e6cb; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+    .info { color: #0c5460; background: #d1ecf1; border: 1px solid #bee5eb; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+    .challenge-card {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .challenge-header {
+      background: #f5f5f5;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+    }
+    .challenge-header h3 { font-size: 16px; margin: 0; }
+    .challenge-body { padding: 16px; }
+    .challenge-section { margin-bottom: 16px; }
+    .challenge-section:last-child { margin-bottom: 0; }
+    .challenge-section h4 { font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 10px; color: #555; }
+    .copy-field {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .copy-field input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: monospace;
+      background: #fafafa;
+    }
+    .copy-btn {
+      padding: 8px 12px;
+      background: #2c3e50;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .copy-btn:hover { background: #1a252f; }
+    .status-badge {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-valid { background: #d4edda; color: #155724; }
+    .status-invalid { background: #f8d7da; color: #721c24; }
+    .cert-area { margin-top: 20px; }
+    .cert-area textarea {
+      width: 100%;
+      height: 200px;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fafafa;
+      resize: vertical;
+    }
+    .cert-area label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .eab-fields { margin-top: 8px; }
+    .footer { text-align: center; margin-top: 24px; font-size: 13px; color: #888; }
+    .step-list { padding-left: 20px; }
+    .step-list li { margin-bottom: 8px; font-size: 14px; }
+    .download-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Free SSL Certificate Generator</h1>
+    <p class="desc">
+      Create a Free SSL Certificate in a few minutes (including Wildcard SSL).
+    </p>
+    <p class="desc">
+      Supported CAs: <strong>Let's Encrypt</strong> (90 days), <strong>Buypass</strong> (180 days), <strong>ZeroSSL</strong> (90 days).
+    </p>
+
+    <div id="error-msg" class="error hidden"></div>
+    <div id="success-msg" class="success hidden"></div>
+    <div id="info-msg" class="info hidden"></div>
+
+    <!-- Step 1: Order Form -->
+    <div id="order-form-section">
+      <form id="order-form">
+        <div class="form-group">
+          <label for="domains">Enter domain name(s)*</label>
+          <input type="text" id="domains" name="domains" placeholder="yourdomain.com, www.yourdomain.com" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Enter Email*</label>
+          <input type="email" id="email" name="email" placeholder="youremail@gmail.com" required>
+        </div>
+        <div class="form-group">
+          <label>Certificate Authority</label>
+          <div class="radio-group">
+            <label><input type="radio" name="ca" value="letsencrypt" checked> Let's Encrypt</label>
+            <label><input type="radio" name="ca" value="buypass"> Buypass</label>
+            <label><input type="radio" name="ca" value="zerossl"> ZeroSSL</label>
+          </div>
+        </div>
+        <div id="eab-section" class="form-group hidden eab-fields">
+          <p class="desc" style="font-size:13px; margin-bottom:10px;">
+            ZeroSSL requires External Account Binding credentials.
+            Get them from <a href="https://app.zerossl.com/developer" target="_blank" rel="noopener noreferrer">app.zerossl.com/developer</a>.
+          </p>
+          <div class="form-group">
+            <label for="eab-kid">EAB KID</label>
+            <input type="text" id="eab-kid" name="eabKid" placeholder="EAB Key ID">
+          </div>
+          <div class="form-group">
+            <label for="eab-hmac">EAB HMAC Key</label>
+            <input type="text" id="eab-hmac" name="eabHmacKey" placeholder="EAB HMAC Key">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Verification Method</label>
+          <div class="radio-group">
+            <label><input type="radio" name="challengeType" value="http-01" checked> HTTP</label>
+            <label><input type="radio" name="challengeType" value="dns-01"> DNS</label>
+          </div>
+        </div>
+        <button type="submit" class="btn" id="create-btn">CREATE FREE SSL CERTIFICATE</button>
+      </form>
+    </div>
+
+    <!-- Step 2: Challenges -->
+    <div id="challenges-section" class="hidden">
+      <h2 style="font-size:20px; margin-bottom:16px;">Complete Domain Verification</h2>
+      <div id="challenges-list"></div>
+      <button class="btn btn-secondary" id="verify-btn">VERIFY &amp; GET CERTIFICATE</button>
+    </div>
+
+    <!-- Step 3: Certificate -->
+    <div id="cert-section" class="hidden cert-area">
+      <h2 style="font-size:20px; margin-bottom:16px;">Your SSL Certificate</h2>
+      <div class="download-btns">
+        <button class="btn btn-sm" onclick="downloadFile('cert')">Download Certificate</button>
+        <button class="btn btn-sm btn-secondary" onclick="downloadFile('key')">Download Private Key</button>
+        <button class="btn btn-sm btn-secondary" onclick="downloadFile('chain')">Download CA Bundle</button>
+      </div>
+      <label for="cert-output">Certificate (CRT)</label>
+      <textarea id="cert-output" readonly></textarea>
+      <label for="key-output">Private Key</label>
+      <textarea id="key-output" readonly></textarea>
+      <label for="chain-output">CA Bundle / Intermediate Certificate</label>
+      <textarea id="chain-output" readonly></textarea>
+      <div style="margin-top:16px;">
+        <button class="btn" onclick="resetForm()">Generate Another Certificate</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>This tool uses the ACME protocol to generate SSL certificates.</p>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let orderState = null;
+
+    // DOM elements
+    const orderFormSection = document.getElementById('order-form-section');
+    const challengesSection = document.getElementById('challenges-section');
+    const certSection = document.getElementById('cert-section');
+    const orderForm = document.getElementById('order-form');
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
+    const infoMsg = document.getElementById('info-msg');
+    const createBtn = document.getElementById('create-btn');
+    const verifyBtn = document.getElementById('verify-btn');
+    const challengesList = document.getElementById('challenges-list');
+    const eabSection = document.getElementById('eab-section');
+
+    // CA selection changes
+    document.querySelectorAll('input[name="ca"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        eabSection.classList.toggle('hidden', e.target.value !== 'zerossl');
+      });
+    });
+
+    // Show/hide helpers
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.remove('hidden');
+      successMsg.classList.add('hidden');
+      infoMsg.classList.add('hidden');
+    }
+    function showSuccess(msg) {
+      successMsg.textContent = msg;
+      successMsg.classList.remove('hidden');
+      errorMsg.classList.add('hidden');
+      infoMsg.classList.add('hidden');
+    }
+    function showInfo(msg) {
+      infoMsg.textContent = msg;
+      infoMsg.classList.remove('hidden');
+      errorMsg.classList.add('hidden');
+      successMsg.classList.add('hidden');
+    }
+    function hideMessages() {
+      errorMsg.classList.add('hidden');
+      successMsg.classList.add('hidden');
+      infoMsg.classList.add('hidden');
+    }
+
+    // Create order
+    orderForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideMessages();
+
+      const formData = new FormData(orderForm);
+      const data = {
+        domains: formData.get('domains'),
+        email: formData.get('email'),
+        ca: formData.get('ca'),
+        eabKid: formData.get('eabKid') || undefined,
+        eabHmacKey: formData.get('eabHmacKey') || undefined,
+      };
+
+      if (!data.domains || !data.email) {
+        showError('Please fill in all required fields.');
+        return;
+      }
+
+      createBtn.disabled = true;
+      createBtn.innerHTML = '<span class="spinner"></span>Creating order...';
+
+      try {
+        const resp = await fetch('/api/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        const result = await resp.json();
+
+        if (!resp.ok || result.error) {
+          throw new Error(result.error || 'Failed to create order');
+        }
+
+        orderState = {
+          ...result,
+          challengeType: formData.get('challengeType'),
+        };
+
+        renderChallenges(result.authorizations, formData.get('challengeType'));
+        orderFormSection.classList.add('hidden');
+        challengesSection.classList.remove('hidden');
+        showInfo('Set up the verification below, then click "Verify & Get Certificate".');
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        createBtn.disabled = false;
+        createBtn.textContent = 'CREATE FREE SSL CERTIFICATE';
+      }
+    });
+
+    // Render challenges
+    function renderChallenges(authorizations, challengeType) {
+      challengesList.innerHTML = '';
+
+      authorizations.forEach((auth, idx) => {
+        const card = document.createElement('div');
+        card.className = 'challenge-card';
+
+        const statusText = auth.verified === null ? 'Pending' :
+                          auth.verified ? 'Verified' : 'Failed';
+        const statusClass = auth.verified === null ? 'status-pending' :
+                           auth.verified ? 'status-valid' : 'status-invalid';
+
+        let bodyHTML = '';
+
+        if (challengeType === 'http-01' && auth.challenges.http) {
+          const http = auth.challenges.http;
+          bodyHTML = `
+            <div class="challenge-section">
+              <h4>HTTP Verification</h4>
+              <ol class="step-list">
+                <li>Download the verification file:
+                  <br><button class="copy-btn" style="margin-top:6px;" onclick="downloadVerificationFile(${idx})">Download File</button>
+                </li>
+                <li>Create the directory <code>.well-known/acme-challenge/</code> in your domain's root folder.</li>
+                <li>Upload the file to that directory so it's accessible at:
+                  <br><a href="http://${auth.domain}/.well-known/acme-challenge/${http.token}" target="_blank" rel="noopener noreferrer"
+                    style="word-break:break-all; color:#c0392b; font-size:13px;">
+                    http://${auth.domain}/.well-known/acme-challenge/${http.token}</a>
+                </li>
+              </ol>
+            </div>`;
+        } else if (challengeType === 'dns-01' && auth.challenges.dns) {
+          const dns = auth.challenges.dns;
+          bodyHTML = `
+            <div class="challenge-section">
+              <h4>DNS Verification</h4>
+              <p style="font-size:14px; margin-bottom:10px;">Add a TXT record to your DNS:</p>
+              <div style="margin-bottom:8px;">
+                <label style="font-size:13px; font-weight:600; margin-bottom:4px; display:block;">Name</label>
+                <div class="copy-field">
+                  <input type="text" value="${dns.name}" readonly>
+                  <button class="copy-btn" onclick="copyText(this, '${dns.name}')">Copy</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:13px; font-weight:600; margin-bottom:4px; display:block;">Value</label>
+                <div class="copy-field">
+                  <input type="text" value="${dns.value}" readonly>
+                  <button class="copy-btn" onclick="copyText(this, '${dns.value}')">Copy</button>
+                </div>
+              </div>
+            </div>`;
+        } else {
+          bodyHTML = '<div class="challenge-section"><p>No challenge available for this verification method.</p></div>';
+        }
+
+        card.innerHTML = `
+          <div class="challenge-header">
+            <h3>${auth.domain}</h3>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+          </div>
+          <div class="challenge-body">${bodyHTML}</div>`;
+
+        challengesList.appendChild(card);
+      });
+    }
+
+    // Copy text to clipboard
+    function copyText(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = orig, 2000);
+      });
+    }
+
+    // Download verification file
+    function downloadVerificationFile(idx) {
+      if (!orderState) return;
+      const auth = orderState.authorizations[idx];
+      if (!auth.challenges.http) return;
+      const blob = new Blob([auth.challenges.http.content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = auth.challenges.http.token;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Verify challenges
+    verifyBtn.addEventListener('click', async () => {
+      if (!orderState) return;
+      hideMessages();
+
+      verifyBtn.disabled = true;
+      verifyBtn.innerHTML = '<span class="spinner"></span>Verifying challenges...';
+
+      try {
+        const resp = await fetch('/api/order/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accountKeyPair: orderState.accountKeyPair,
+            accountUrl: orderState.accountUrl,
+            orderUrl: orderState.orderUrl,
+            finalizeUrl: orderState.finalizeUrl,
+            authorizations: orderState.authorizations,
+            ca: orderState.ca,
+            challengeType: orderState.challengeType,
+          }),
+        });
+        const result = await resp.json();
+
+        if (!resp.ok || result.error) {
+          throw new Error(result.error || 'Verification failed');
+        }
+
+        if (result.status === 'valid' && result.certificate) {
+          document.getElementById('cert-output').value = result.certificate;
+          document.getElementById('key-output').value = result.privateKey || '';
+          document.getElementById('chain-output').value = result.intermediateCert || '';
+
+          challengesSection.classList.add('hidden');
+          certSection.classList.remove('hidden');
+          showSuccess('SSL Certificate generated successfully!');
+        } else {
+          showError(result.error || 'Verification not yet complete. Please ensure challenges are set up and try again.');
+        }
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'VERIFY & GET CERTIFICATE';
+      }
+    });
+
+    // Download certificate files
+    function downloadFile(type) {
+      let content, filename;
+      switch (type) {
+        case 'cert':
+          content = document.getElementById('cert-output').value;
+          filename = 'certificate.crt';
+          break;
+        case 'key':
+          content = document.getElementById('key-output').value;
+          filename = 'private.key';
+          break;
+        case 'chain':
+          content = document.getElementById('chain-output').value;
+          filename = 'ca_bundle.crt';
+          break;
+        default: return;
+      }
+      if (!content) return;
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Reset form
+    function resetForm() {
+      orderState = null;
+      hideMessages();
+      orderFormSection.classList.remove('hidden');
+      challengesSection.classList.add('hidden');
+      certSection.classList.add('hidden');
+      orderForm.reset();
+    }
+  </script>
+</body>
+</html>

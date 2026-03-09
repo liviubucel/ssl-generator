@@ -1,6 +1,32 @@
-# greenlock.dev
+# Free SSL Certificate Generator
 
-Greenlock is an open-source and free SSL certificate generator designed to make securing your websites easy.
+An open-source SSL certificate generator deployed on Cloudflare Workers. Supports multiple Certificate Authorities.
+
+## Supported CAs
+
+- **Let's Encrypt** — 90-day certificates
+- **Buypass** — 180-day certificates
+- **ZeroSSL** — 90-day certificates (requires EAB credentials)
+
+## Features
+
+- HTTP-01 and DNS-01 challenge verification
+- Wildcard SSL certificate support (DNS-01 only)
+- Download certificate, private key, and CA bundle
+- Runs entirely on Cloudflare Workers (no traditional server needed)
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+## Deployment
+
+```bash
+npx wrangler deploy
+```
 
 ## Badges
 
@@ -9,8 +35,9 @@ Greenlock is an open-source and free SSL certificate generator designed to make 
 ## Acknowledgements
 
 - [SSL Certificate Generator](https://punchsalad.com/ssl-certificate-generator/)
-- [afosto/yaac](https://github.com/afosto/yaac)
 - [Let's Encrypt](https://letsencrypt.org/)
+- [Buypass](https://www.buypass.com/)
+- [ZeroSSL](https://zerossl.com/)
 
 ## License
 
