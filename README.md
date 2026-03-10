@@ -1,5 +1,5 @@
+[![MIT License]([https://img.shields.io/badge/License-MIT-green.svg](https://www.liviubucel.com/web/image/website/1/logo/Liviu%20Bucel%20-%20Cybersecurity%20Solutions%20%7C%20Protect%20Your%20Data%20%7C%20infosec?unique=368376c))](https://choosealicense.com/licenses/mit/)
 
-https://www.liviubucel.com/web/image/website/1/logo/Liviu%20Bucel%20-%20Cybersecurity%20Solutions%20%7C%20Protect%20Your%20Data%20%7C%20infosec?unique=368376c
 
 # Free SSL Certificate Generator
 
