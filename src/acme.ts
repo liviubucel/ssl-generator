@@ -68,7 +68,7 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
   const directoryUrl = ACME_DIRECTORIES[ca];
   if (!directoryUrl) throw new Error(`Unknown CA: ${ca}`);
 
-  const maxAttempts = 3;
+  const maxAttempts = 5;
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -79,7 +79,11 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
           'User-Agent': USER_AGENT,
           'cf-no-cache': '1',
         },
-      });
+        // keepalive and redirect are valid fetch options but missing from
+        // @cloudflare/workers-types RequestInitCfProperties, so we cast here
+        keepalive: false,
+        redirect: 'follow',
+      } as RequestInit);
       if (!resp.ok) {
         let detail = '';
         try {
@@ -88,9 +92,11 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
             detail = await resp.text();
           }
         } catch { /* ignore */ }
-        throw new Error(
-          `Failed to fetch ACME directory from ${ca}: HTTP ${resp.status}${detail ? ' - ' + detail : ''}. The certificate authority may be temporarily unavailable. Please try again later or select a different CA.`
-        );
+        const is525 = resp.status === 525;
+        const errorMsg = is525
+          ? `Failed to fetch ACME directory from ${ca}: HTTP 525 (SSL Handshake Failed). This is a temporary Cloudflare↔Let's Encrypt connectivity issue. Please try again or switch to ZeroSSL.`
+          : `Failed to fetch ACME directory from ${ca}: HTTP ${resp.status}${detail ? ' - ' + detail : ''}. The certificate authority may be temporarily unavailable. Please try again later or select a different CA.`;
+        throw new Error(errorMsg);
       }
       const data = (await resp.json()) as Record<string, string>;
 
@@ -102,12 +108,12 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
     } catch (err: any) {
       lastError = err;
       if (attempt < maxAttempts) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
   }
 
-  throw lastError!;
+  throw lastError!
 }
 
 // Get a fresh nonce

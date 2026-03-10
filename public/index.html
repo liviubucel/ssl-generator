@@ -217,6 +217,16 @@
     .auto-renew-fields input[type="number"] { width: 80px; }
     .auto-renew-fields input[type="email"] { width: 100%; }
     small { color: #888; font-size: 12px; margin-top: 4px; display: block; }
+    .cert-info-banner {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #856404;
+    }
+    .cert-info-banner strong { color: #533f03; }
   </style>
 </head>
 <body>
@@ -309,6 +319,9 @@
     <!-- Step 3: Certificate -->
     <div id="cert-section" class="hidden cert-area">
       <h2 data-i18n="certTitle">Your SSL Certificate</h2>
+      <div class="cert-info-banner" id="cert-validity-banner">
+        <span data-i18n-html="certValidityInfo"></span>
+      </div>
       <div class="download-btns">
         <button class="btn btn-sm" onclick="downloadFile('cert')" data-i18n="downloadCert">Download Certificate</button>
         <button class="btn btn-sm btn-secondary" onclick="downloadFile('key')" data-i18n="downloadKey">Download Private Key</button>
@@ -361,6 +374,7 @@
         keyLabel: 'Private Key',
         chainLabel: 'CA Bundle / Intermediate Certificate',
         generateAnother: 'Generate Another Certificate',
+        certValidityInfo: '⚠️ <strong>Important:</strong> This certificate is valid for <strong>90 days</strong>. You will need to renew it before it expires. Save your private key and come back to generate a new certificate.',
         footer: 'This tool uses the ACME protocol to generate SSL certificates.',
         httpVerification: 'HTTP Verification',
         dnsVerification: 'DNS Verification',
@@ -415,6 +429,7 @@
         keyLabel: 'Cheie Privată',
         chainLabel: 'Pachet CA / Certificat Intermediar',
         generateAnother: 'Generează Alt Certificat',
+        certValidityInfo: '⚠️ <strong>Important:</strong> Acest certificat este valabil <strong>90 de zile</strong>. Va trebui să îl reînnoiți înainte de expirare. Salvați cheia privată și reveniți pentru a genera un nou certificat.',
         footer: 'Acest instrument folosește protocolul ACME pentru a genera certificate SSL.',
         httpVerification: 'Verificare HTTP',
         dnsVerification: 'Verificare DNS',
