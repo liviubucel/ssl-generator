@@ -9,7 +9,6 @@ import {
 // ACME Directory URLs
 const ACME_DIRECTORIES: Record<string, string> = {
   letsencrypt: 'https://acme-v02.api.letsencrypt.org/directory',
-  buypass: 'https://api.buypass.com/acme/directory',
   zerossl: 'https://acme.zerossl.com/v2/DV90',
 };
 
@@ -64,36 +63,51 @@ export interface VerifyResult {
   error?: string;
 }
 
-// Fetch ACME directory
+// Fetch ACME directory (with retry for transient connectivity issues)
 async function getDirectory(ca: string): Promise<AcmeDirectory> {
   const directoryUrl = ACME_DIRECTORIES[ca];
   if (!directoryUrl) throw new Error(`Unknown CA: ${ca}`);
 
-  const resp = await fetch(directoryUrl, {
-    headers: {
-      'Accept': 'application/json',
-      'User-Agent': USER_AGENT,
-    },
-  });
-  if (!resp.ok) {
-    let detail = '';
-    try {
-      const contentType = resp.headers.get('content-type') || '';
-      if (contentType.includes('text') || contentType.includes('json')) {
-        detail = await resp.text();
-      }
-    } catch { /* ignore */ }
-    throw new Error(
-      `Failed to fetch ACME directory from ${ca}: HTTP ${resp.status}${detail ? ' - ' + detail : ''}`
-    );
-  }
-  const data = (await resp.json()) as Record<string, string>;
+  const maxAttempts = 3;
+  let lastError: Error | null = null;
 
-  return {
-    newNonce: data.newNonce,
-    newAccount: data.newAccount,
-    newOrder: data.newOrder,
-  };
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const resp = await fetch(directoryUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': USER_AGENT,
+          'cf-no-cache': '1',
+        },
+      });
+      if (!resp.ok) {
+        let detail = '';
+        try {
+          const contentType = resp.headers.get('content-type') || '';
+          if (contentType.includes('text') || contentType.includes('json')) {
+            detail = await resp.text();
+          }
+        } catch { /* ignore */ }
+        throw new Error(
+          `Failed to fetch ACME directory from ${ca}: HTTP ${resp.status}${detail ? ' - ' + detail : ''}. The certificate authority may be temporarily unavailable. Please try again later or select a different CA.`
+        );
+      }
+      const data = (await resp.json()) as Record<string, string>;
+
+      return {
+        newNonce: data.newNonce,
+        newAccount: data.newAccount,
+        newOrder: data.newOrder,
+      };
+    } catch (err: any) {
+      lastError = err;
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+  }
+
+  throw lastError!;
 }
 
 // Get a fresh nonce

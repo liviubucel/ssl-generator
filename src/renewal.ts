@@ -74,8 +74,7 @@ function shouldRenew(config: RenewalConfig): boolean {
   const now = new Date();
 
   // Estimate expiry based on CA validity periods
-  let validityDays = 90; // Let's Encrypt, ZeroSSL
-  if (config.ca === 'buypass') validityDays = 180;
+  const validityDays = 90; // Let's Encrypt, ZeroSSL
 
   const expiryDate = new Date(
     created.getTime() + validityDays * MS_PER_DAY
