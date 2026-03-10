@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/order.ts": {
+      "maxDuration": 60
+    },
+    "api/order/verify.ts": {
+      "maxDuration": 60
+    }
+  }
+}
