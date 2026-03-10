@@ -325,21 +325,19 @@
           <label for="email" data-i18n="emailLabel">Enter Email*</label>
           <input type="email" id="email" name="email" placeholder="youremail@gmail.com" required>
         </div>
-        <div class="radio-inline-groups">
-          <div class="form-group">
-            <label data-i18n="caLabel">Certificate Authority</label>
-            <div class="radio-group">
-              <label><input type="radio" name="ca" value="letsencrypt" checked> Let's Encrypt</label>
-              <label><input type="radio" name="ca" value="zerossl"> ZeroSSL</label>
-            </div>
-            <small id="zerossl-note" class="hidden" data-i18n="zerosslNote">ZeroSSL is part of sectigo </small>
+        <div class="form-group">
+          <label data-i18n="caLabel">Certificate Authority</label>
+          <div class="radio-group">
+            <label><input type="radio" name="ca" value="letsencrypt" checked> Let's Encrypt</label>
+            <label><input type="radio" name="ca" value="zerossl"> ZeroSSL</label>
           </div>
-          <div class="form-group">
-            <label data-i18n="verificationLabel">Verification Method</label>
-            <div class="radio-group">
-              <label id="http-label"><input type="radio" name="challengeType" value="http-01" checked> HTTP</label>
-              <label><input type="radio" name="challengeType" value="dns-01"> DNS</label>
-            </div>
+          <small id="zerossl-note" class="hidden" data-i18n="zerosslNote">ZeroSSL is part of sectigo </small>
+        </div>
+        <div class="form-group">
+          <label data-i18n="verificationLabel">Verification Method</label>
+          <div class="radio-group">
+            <label id="http-label"><input type="radio" name="challengeType" value="http-01" checked> HTTP</label>
+            <label><input type="radio" name="challengeType" value="dns-01"> DNS</label>
           </div>
         </div>
 
