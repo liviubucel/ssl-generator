@@ -19,6 +19,9 @@ export interface Env {
   // Shared secret between this Worker and the Railway ACME engine.
   // Must match ENGINE_TOKEN environment variable set on Railway.
   ENGINE_TOKEN?: string;
+  // Resend API key for email notifications on certificate renewal.
+  // Set via: wrangler secret put RESEND_API_KEY
+  RESEND_API_KEY?: string;
 }
 
 export default {
@@ -42,7 +45,7 @@ export default {
     env: Env,
     _ctx: ExecutionContext
   ): Promise<void> {
-    await handleScheduledRenewal(env);
+    await handleScheduledRenewal({ ...env, RESEND_API_KEY: env.RESEND_API_KEY });
   },
 } satisfies ExportedHandler<Env>;
 

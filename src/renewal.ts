@@ -8,6 +8,7 @@ export interface Env {
   EAB_KID?: string;
   EAB_HMAC_KEY?: string;
   CF_API_TOKEN?: string;
+  RESEND_API_KEY?: string;
 }
 
 export interface RenewalConfig {
@@ -96,6 +97,31 @@ function getBaseDomain(domain: string): string {
   return parts.slice(-2).join('.');
 }
 
+async function sendEmail(
+  apiKey: string,
+  to: string,
+  subject: string,
+  html: string
+): Promise<void> {
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'SSL Generator <noreply@zebrabyte.ro>',
+        to: [to],
+        subject,
+        html,
+      }),
+    });
+  } catch (err) {
+    console.error('Failed to send email:', err);
+  }
+}
+
 export async function handleScheduledRenewal(env: Env): Promise<void> {
   if (!env.SSL_STORE) {
     console.log('SSL_STORE KV not configured, skipping renewal check');
@@ -166,16 +192,45 @@ export async function handleScheduledRenewal(env: Env): Promise<void> {
             config.lastRenewalAttempt = new Date().toISOString();
             config.lastRenewalStatus = 'success';
             await saveRenewalConfig(env.SSL_STORE, config);
-            console.log(
-              `Successfully renewed certificate for: ${config.domains.join(', ')}`
-            );
+            console.log(`Successfully renewed certificate for: ${config.domains.join(', ')}`);
+
+            if (env.RESEND_API_KEY && config.notifyEmail) {
+              await sendEmail(
+                env.RESEND_API_KEY,
+                config.notifyEmail,
+                `✅ SSL Certificate Renewed: ${config.domains[0]}`,
+                `<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+                  <img src="https://static-media.zebrabyte.ro/Zebrabyte-Logo-black.png" alt="Zebrabyte" style="height:36px;margin-bottom:24px">
+                  <h2 style="color:#27ae60">Certificate Renewed Successfully</h2>
+                  <p>Your SSL certificate for <strong>${config.domains.join(', ')}</strong> has been automatically renewed.</p>
+                  <p>The new certificate is valid for <strong>90 days</strong>.</p>
+                  <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
+                  <p style="color:#888;font-size:12px">© 2015 - 2025 ZEBRABYTE LIMITED. All Rights Reserved.</p>
+                </div>`
+              );
+            }
           } else {
             config.lastRenewalAttempt = new Date().toISOString();
             config.lastRenewalStatus = `failed: ${verifyResult.error || 'Unknown error'}`;
             await saveRenewalConfig(env.SSL_STORE, config);
-            console.error(
-              `Renewal verification failed for: ${config.domains.join(', ')}`
-            );
+            console.error(`Renewal verification failed for: ${config.domains.join(', ')}`);
+
+            if (env.RESEND_API_KEY && config.notifyEmail) {
+              await sendEmail(
+                env.RESEND_API_KEY,
+                config.notifyEmail,
+                `⚠️ SSL Renewal Failed: ${config.domains[0]}`,
+                `<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+                  <img src="https://static-media.zebrabyte.ro/Zebrabyte-Logo-black.png" alt="Zebrabyte" style="height:36px;margin-bottom:24px">
+                  <h2 style="color:#c0392b">Certificate Renewal Failed</h2>
+                  <p>Automatic renewal for <strong>${config.domains.join(', ')}</strong> has failed.</p>
+                  <p>Error: ${verifyResult.error || 'Unknown error'}</p>
+                  <p>Please visit <a href="https://ssl.zebrabyte.ro">ssl.zebrabyte.ro</a> to renew manually.</p>
+                  <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
+                  <p style="color:#888;font-size:12px">© 2015 - 2025 ZEBRABYTE LIMITED. All Rights Reserved.</p>
+                </div>`
+              );
+            }
           }
         } finally {
           // Clean up DNS TXT records
