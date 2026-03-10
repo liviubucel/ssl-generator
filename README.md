@@ -29,18 +29,18 @@ Cloudflare Worker (src/worker.ts)
 
 ## Features
 
-- ✅ Free SSL certificates via Let's Encrypt and ZeroSSL
-- ✅ Wildcard certificates (`*.example.com`) — DNS-01 only
-- ✅ HTTP-01 and DNS-01 challenge verification
-- ✅ Download certificate, private key, and CA bundle
-- ✅ Auto-renewal via Cloudflare Cron Triggers (daily at 2:00 AM UTC)
-- ✅ Email notifications on renewal (via Resend)
-- ✅ Railway proxy to fix Cloudflare-edge → Let's Encrypt TLS issues
-- ✅ ENGINE_TOKEN authentication between Worker and Railway
-- ✅ Bilingual UI (English / Romanian)
-- ✅ Mobile responsive design
-- ✅ Terms & Conditions acceptance (Zebrabyte + Let's Encrypt)
-- ✅ Zebrabyte branding (logo, footer)
+-  Free SSL certificates via Let's Encrypt and ZeroSSL
+-  Wildcard certificates (`*.example.com`) — DNS-01 only
+-  HTTP-01 and DNS-01 challenge verification
+-  Download certificate, private key, and CA bundle
+-  Auto-renewal via Cloudflare Cron Triggers (daily at 2:00 AM UTC)
+-  Email notifications on renewal (via Resend)
+-  Railway proxy to fix Cloudflare-edge → Let's Encrypt TLS issues
+-  ENGINE_TOKEN authentication between Worker and Railway
+-  Bilingual UI (English / Romanian)
+-  Mobile responsive design
+-  Terms & Conditions acceptance (Zebrabyte + Let's Encrypt)
+-  Zebrabyte branding (logo, footer)
 
 ---
 
@@ -169,6 +169,11 @@ ssl-generator/
 Company No. 15194067 | ICO Reference: ZB74870
 
 ---
+
+## Test the generator
+
+[MIT][(https://ssl-gratis.zebrabyte.ro/))
+
 
 ## License
 
