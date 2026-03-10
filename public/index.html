@@ -910,7 +910,31 @@
       hideMessages();
 
       verifyBtn.disabled = true;
-      verifyBtn.innerHTML = '<span class="spinner"></span>' + escapeHtml(t('verifying'));
+
+      // Progress messages that cycle during verification
+      var progressMessages = [
+        '⏳ ' + t('verifying'),
+        '🔍 Checking DNS propagation...',
+        '📡 Contacting Let\'s Encrypt...',
+        '⏳ This may take up to 60 seconds...',
+        '🔄 Still working, please wait...',
+        '✅ Almost there...',
+      ];
+      var progressRo = [
+        '⏳ Se verifică...',
+        '🔍 Se verifică propagarea DNS...',
+        '📡 Se contactează Let\'s Encrypt...',
+        '⏳ Poate dura până la 60 de secunde...',
+        '🔄 Se procesează, vă rugăm așteptați...',
+        '✅ Aproape gata...',
+      ];
+      var msgs = currentLang === 'ro' ? progressRo : progressMessages;
+      var msgIdx = 0;
+      verifyBtn.innerHTML = '<span class="spinner"></span>' + msgs[0];
+      var progressInterval = setInterval(function() {
+        msgIdx = (msgIdx + 1) % msgs.length;
+        verifyBtn.innerHTML = '<span class="spinner"></span>' + msgs[msgIdx];
+      }, 6000);
 
       try {
         var resp = await fetch('/api/order/verify', {
@@ -950,6 +974,7 @@
       } catch (err) {
         showError(normalizeErrorMessage(err));
       } finally {
+        clearInterval(progressInterval);
         verifyBtn.disabled = false;
         verifyBtn.textContent = t('verifyBtn');
       }
