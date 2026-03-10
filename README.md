@@ -29,18 +29,18 @@ Cloudflare Worker (src/worker.ts)
 
 ## Features
 
--  Free SSL certificates via Let's Encrypt and ZeroSSL
--  Wildcard certificates (`*.example.com`) — DNS-01 only
--  HTTP-01 and DNS-01 challenge verification
--  Download certificate, private key, and CA bundle
--  Auto-renewal via Cloudflare Cron Triggers (daily at 2:00 AM UTC)
--  Email notifications on renewal (via Resend)
--  Railway proxy to fix Cloudflare-edge → Let's Encrypt TLS issues
--  ENGINE_TOKEN authentication between Worker and Railway
--  Bilingual UI (English / Romanian)
--  Mobile responsive design
--  Terms & Conditions acceptance (Zebrabyte + Let's Encrypt)
--  Zebrabyte branding (logo, footer)
+- ✅ Free SSL certificates via Let's Encrypt and ZeroSSL
+- ✅ Wildcard certificates (`*.example.com`) — DNS-01 only
+- ✅ HTTP-01 and DNS-01 challenge verification
+- ✅ Download certificate, private key, and CA bundle
+- ✅ Auto-renewal via Cloudflare Cron Triggers (daily at 2:00 AM UTC)
+- ✅ Email notifications on renewal (via Resend)
+- ✅ Railway proxy to fix Cloudflare-edge → Let's Encrypt TLS issues
+- ✅ ENGINE_TOKEN authentication between Worker and Railway
+- ✅ Bilingual UI (English / Romanian)
+- ✅ Mobile responsive design
+- ✅ Terms & Conditions acceptance (Zebrabyte + Let's Encrypt)
+- ✅ Zebrabyte branding (logo, footer)
 
 ---
 
@@ -48,8 +48,8 @@ Cloudflare Worker (src/worker.ts)
 
 | CA | Validity | Wildcard | Support |
 |----|----------|----------|---------|
-| **ZeroSSL** | 90 days | | Full support by Zebrabyte |
-| **Let's Encrypt** | 90 days |  | No support by Zebrabyte |
+| **ZeroSSL** | 90 days | ✅ | Full support by Zebrabyte |
+| **Let's Encrypt** | 90 days | ✅ | No support by Zebrabyte |
 
 ---
 
@@ -59,8 +59,8 @@ Set these in **Cloudflare Workers → Settings → Variables and Secrets**:
 
 | Secret | Required | Description |
 |--------|----------|-------------|
-| `ACME_ENGINE_URL` |  | Railway proxy URL (e.g. `https://ssl-acme-engine-production.up.railway.app`) |
-| `ENGINE_TOKEN` |  | Shared secret between Worker and Railway proxy |
+| `ACME_ENGINE_URL` | ✅ | Railway proxy URL (e.g. `https://ssl-acme-engine-production.up.railway.app`) |
+| `ENGINE_TOKEN` | ✅ | Shared secret between Worker and Railway proxy |
 | `EAB_KID` | ZeroSSL | ZeroSSL EAB Key ID |
 | `EAB_HMAC_KEY` | ZeroSSL | ZeroSSL EAB HMAC Key |
 | `CF_API_TOKEN` | Auto-renewal | Cloudflare API token (Zone:DNS:Edit) for auto DNS management |
@@ -70,7 +70,7 @@ Set these in **Railway → ssl-acme-engine → Variables**:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ENGINE_TOKEN` |  | Must match the Worker secret |
+| `ENGINE_TOKEN` | ✅ | Must match the Worker secret |
 
 ---
 
@@ -166,7 +166,7 @@ ssl-generator/
 
 **Liviu Bucel** — [liviubucel.com](https://liviubucel.com)  
 **Zebrabyte Limited** — [zebrabyte.ro](https://zebrabyte.ro)  
-
+Company No. 15194067 | ICO Reference: ZB74870
 
 ---
 
