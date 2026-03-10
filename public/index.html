@@ -656,6 +656,10 @@
           throw new Error(result.error || 'Failed to create order');
         }
 
+        if (!Array.isArray(result.authorizations)) {
+          throw new Error('API response is invalid: missing authorizations. Verify Vercel serverless functions are deployed correctly.');
+        }
+
         orderState = {
           ...result,
           challengeType: formData.get('challengeType'),
