@@ -5,1052 +5,343 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Free SSL Certificate Generator</title>
   <style>
-    :root{
-      --bg:#f8fafc;
-      --card:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line:#e2e8f0;
-      --primary:#000000;
-      --primary-hover:#1f2937;
-      --accent:#2563eb;
-      --success:#16a34a;
-      --success-bg:#f0fdf4;
-      --warning:#d97706;
-      --warning-bg:#fff7ed;
-      --danger:#dc2626;
-      --danger-bg:#fef2f2;
-      --info:#0f766e;
-      --info-bg:#ecfeff;
-      --shadow:0 10px 30px rgba(15,23,42,.08);
-      --radius:16px;
-    }
-
-    *{box-sizing:border-box;margin:0;padding:0}
-    html{scroll-behavior:smooth}
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      line-height:1.6;
-    }
-
-    a{color:inherit;text-decoration:none}
-    button,input,select,textarea{font:inherit}
-
-    .site-header{
-      position:sticky;
-      top:0;
-      z-index:20;
-      background:rgba(255,255,255,.92);
-      backdrop-filter:blur(10px);
-      border-bottom:1px solid var(--line);
-    }
-
-    .header-inner{
-      max-width:1200px;
-      margin:0 auto;
-      padding:16px 20px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
-
-    .brand img{
-      height:34px;
-      width:auto;
-      display:block;
-      filter:brightness(0);
-    }
-
-    .brand-text{
-      display:flex;
-      flex-direction:column;
-      line-height:1.2;
-    }
-
-    .brand-text strong{
-      font-size:15px;
-      font-weight:700;
-      color:var(--text);
-    }
-
-    .brand-text span{
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .header-actions{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-
-    .lang-select{
-      padding:10px 14px;
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:#fff;
-      font-size:14px;
-      cursor:pointer;
-      color:var(--text);
-      min-width:130px;
-    }
-
-    .header-link{
-      padding:10px 14px;
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:#fff;
-      color:var(--text);
-      font-size:14px;
-      font-weight:600;
-      transition:.2s ease;
-    }
-
-    .header-link:hover{
-      border-color:#cbd5e1;
-      background:#f8fafc;
-    }
-
-    .hero{
-      position:relative;
-      overflow:hidden;
-      background:
-        radial-gradient(circle at top right, rgba(37,99,235,.08), transparent 30%),
-        radial-gradient(circle at top left, rgba(0,0,0,.05), transparent 25%),
-        linear-gradient(180deg,#ffffff 0%, #f8fafc 100%);
-      border-bottom:1px solid var(--line);
-    }
-
-    .hero-inner{
-      max-width:1200px;
-      margin:0 auto;
-      padding:56px 20px 40px;
-      display:grid;
-      grid-template-columns:1.15fr .85fr;
-      gap:32px;
-      align-items:center;
-    }
-
-    .hero-copy h1{
-      font-size:50px;
-      line-height:1.08;
-      letter-spacing:-.02em;
-      margin-bottom:18px;
-      font-weight:800;
-      color:#020617;
-    }
-
-    .hero-copy p{
-      font-size:18px;
-      color:var(--muted);
-      max-width:700px;
-      margin-bottom:20px;
-    }
-
-    .hero-points{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:18px;
-    }
-
-    .hero-pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 14px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.9);
-      border-radius:999px;
-      font-size:13px;
-      font-weight:600;
-      color:var(--text);
-      box-shadow:0 2px 8px rgba(15,23,42,.04);
-    }
-
-    .hero-side{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:24px;
-      padding:24px;
-      box-shadow:var(--shadow);
-    }
-
-    .hero-side-title{
-      font-size:15px;
-      font-weight:700;
-      margin-bottom:16px;
-    }
-
-    .mini-steps{
-      display:grid;
-      gap:12px;
-    }
-
-    .mini-step{
-      display:flex;
-      align-items:flex-start;
-      gap:12px;
-      padding:14px;
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:#fcfcfd;
-    }
-
-    .mini-step-num{
-      width:34px;
-      height:34px;
-      border-radius:50%;
-      background:#000;
-      color:#fff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:14px;
-      font-weight:700;
-      flex-shrink:0;
-    }
-
-    .mini-step h3{
-      font-size:14px;
-      margin-bottom:2px;
-    }
-
-    .mini-step p{
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .main{
-      max-width:1200px;
-      margin:0 auto;
-      padding:34px 20px 60px;
-    }
-
-    .progress-wrap{
-      margin-bottom:24px;
-    }
-
-    .progress{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:14px;
-    }
-
-    .progress-step{
-      position:relative;
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:18px;
-      padding:18px;
-      box-shadow:0 2px 10px rgba(15,23,42,.04);
-    }
-
-    .progress-step strong{
-      display:block;
-      font-size:14px;
-      margin-bottom:4px;
-    }
-
-    .progress-step span{
-      display:block;
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .progress-step.active{
-      border-color:#000;
-      background:linear-gradient(180deg,#111827,#000);
-      color:#fff;
-    }
-
-    .progress-step.active span{
-      color:rgba(255,255,255,.8);
-    }
-
-    .layout{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) 320px;
-      gap:24px;
-      align-items:start;
-    }
-
-    .panel{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:24px;
-      padding:28px;
-      box-shadow:var(--shadow);
-    }
-
-    .panel-header{
-      margin-bottom:22px;
-    }
-
-    .eyebrow{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:#f1f5f9;
-      color:#334155;
-      font-size:12px;
-      font-weight:700;
-      text-transform:uppercase;
-      letter-spacing:.04em;
-      margin-bottom:14px;
-    }
-
-    .panel-header h2{
-      font-size:28px;
-      line-height:1.15;
-      margin-bottom:8px;
-      letter-spacing:-.02em;
-    }
-
-    .panel-header p{
-      color:var(--muted);
-      font-size:15px;
-      max-width:720px;
-    }
-
-    .sidebar{
-      position:sticky;
-      top:96px;
-      display:grid;
-      gap:16px;
-    }
-
-    .sidebar-card{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:20px;
-      padding:20px;
-      box-shadow:0 6px 18px rgba(15,23,42,.05);
-    }
-
-    .sidebar-card h3{
-      font-size:15px;
-      margin-bottom:10px;
-    }
-
-    .sidebar-card p,
-    .sidebar-card li{
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .sidebar-card ul{
-      padding-left:18px;
-      display:grid;
-      gap:6px;
-    }
-
-    .stack{
-      display:grid;
-      gap:18px;
-    }
-
-    .form-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:18px;
-    }
-
-    .form-grid-3{
-      display:grid;
-      grid-template-columns:1.1fr 1fr 1fr;
-      gap:18px;
-    }
-
-    .form-group{
-      display:grid;
-      gap:8px;
-    }
-
-    .form-group label{
-      font-size:14px;
-      font-weight:700;
-      color:#0f172a;
-    }
-
-    .form-group small{
-      color:var(--muted);
-      font-size:12px;
-      display:block;
-      margin-top:2px;
-    }
-
-    .form-group input,
-    .form-group select,
-    .form-group textarea{
-      width:100%;
-      border:1px solid #cbd5e1;
-      border-radius:14px;
-      padding:14px 15px;
-      background:#fff;
-      color:var(--text);
-      transition:.2s ease;
-      font-size:15px;
-    }
-
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus{
-      outline:none;
-      border-color:var(--accent);
-      box-shadow:0 0 0 4px rgba(37,99,235,.10);
-    }
-
-    .domain-input-row{
-      display:flex;
-      gap:10px;
-      align-items:stretch;
-    }
-
-    .domain-input-row input{flex:1}
-
-    .radio-group,
-    .checkbox-group{
-      display:flex;
-      flex-wrap:wrap;
-      gap:14px;
-      margin-top:2px;
-    }
-
-    .radio-group label,
-    .checkbox-group label{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:12px 14px;
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:14px;
-      cursor:pointer;
-      font-size:14px;
-      font-weight:600;
-      color:#0f172a;
-      transition:.2s ease;
-    }
-
-    .radio-group label:hover,
-    .checkbox-group label:hover{
-      border-color:#cbd5e1;
-      background:#fafafa;
-    }
-
-    .radio-group input[type="radio"],
-    .checkbox-group input[type="checkbox"]{
-      width:auto;
-      transform:translateY(1px);
-      accent-color:#000;
-    }
-
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      width:100%;
-      min-height:54px;
-      padding:14px 20px;
-      border:none;
-      border-radius:16px;
-      cursor:pointer;
-      font-size:15px;
-      font-weight:800;
-      letter-spacing:.01em;
-      transition:.2s ease;
-    }
-
-    .btn:hover{transform:translateY(-1px)}
-    .btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
-
-    .btn-primary{
-      background:#000;
-      color:#fff;
-      box-shadow:0 10px 22px rgba(0,0,0,.16);
-    }
-
-    .btn-primary:hover{background:var(--primary-hover)}
-
-    .btn-secondary{
-      background:#fff;
-      color:#000;
-      border:1px solid #cbd5e1;
-    }
-
-    .btn-secondary:hover{background:#f8fafc}
-
-    .btn-soft{
-      background:#f8fafc;
-      color:#0f172a;
-      border:1px solid var(--line);
-    }
-
-    .btn-soft:hover{background:#f1f5f9}
-
-    .btn-sm{
-      min-height:42px;
-      width:auto;
-      padding:10px 14px;
-      border-radius:12px;
-      font-size:13px;
-      font-weight:700;
-    }
-
-    .btn-wildcard{
-      min-width:132px;
-      width:auto;
-      white-space:nowrap;
-      padding:0 16px;
-      border:none;
-      border-radius:14px;
-      background:linear-gradient(135deg,#7c3aed,#9333ea);
-      color:#fff;
-      font-size:14px;
-      font-weight:800;
-      cursor:pointer;
-      transition:.2s ease;
-      box-shadow:0 10px 18px rgba(124,58,237,.18);
-    }
-
-    .btn-wildcard:hover{
-      transform:translateY(-1px);
-      filter:brightness(.98);
-    }
-
-    .hidden{display:none!important}
-
-    .message{
-      border-radius:18px;
-      padding:16px 18px;
-      font-size:14px;
-      font-weight:600;
-      margin-bottom:18px;
-      border:1px solid transparent;
-    }
-
-    .error{color:var(--danger);background:var(--danger-bg);border-color:#fecaca}
-    .success{color:#166534;background:var(--success-bg);border-color:#bbf7d0}
-    .info{color:#155e75;background:var(--info-bg);border-color:#a5f3fc}
-
-    .split-line{
-      height:1px;
-      background:var(--line);
-      margin:24px 0;
-    }
-
-    .auto-renew-section{
-      border:1px solid var(--line);
-      background:linear-gradient(180deg,#fbfdff,#f8fafc);
-      border-radius:20px;
-      padding:18px;
-    }
-
-    .auto-renew-section h4{
-      font-size:16px;
-      margin-bottom:12px;
-    }
-
-    .auto-renew-fields{
-      margin-top:14px;
-      display:grid;
-      gap:14px;
-    }
-
-    .challenge-grid{
-      display:grid;
-      gap:18px;
-      margin-top:8px;
-    }
-
-    .challenge-card{
-      border:1px solid var(--line);
-      border-radius:20px;
-      overflow:hidden;
-      background:#fff;
-      box-shadow:0 8px 18px rgba(15,23,42,.05);
-    }
-
-    .challenge-header{
-      padding:18px 20px;
-      background:linear-gradient(180deg,#ffffff,#f8fafc);
-      border-bottom:1px solid var(--line);
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-
-    .challenge-header h3{
-      font-size:18px;
-      line-height:1.2;
-      word-break:break-word;
-    }
-
-    .challenge-body{
-      padding:22px 20px;
-      display:grid;
-      gap:18px;
-    }
-
-    .challenge-section h4{
-      font-size:14px;
-      text-transform:uppercase;
-      letter-spacing:.04em;
-      color:#334155;
-      margin-bottom:10px;
-    }
-
-    .challenge-section p{
-      font-size:14px;
-      color:var(--muted);
-    }
-
-    .copy-field{
-      display:flex;
-      gap:10px;
-      align-items:stretch;
-    }
-
-    .copy-field input{
-      flex:1;
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;
-      font-size:13px!important;
-      background:#f8fafc;
-    }
-
-    .copy-btn{
-      border:none;
-      min-width:92px;
-      border-radius:12px;
-      background:#000;
-      color:#fff;
-      padding:0 14px;
-      cursor:pointer;
-      font-size:13px;
-      font-weight:700;
-      transition:.2s ease;
-    }
-
-    .copy-btn:hover{background:#1f2937}
-
-    .status-badge{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      font-size:12px;
-      padding:8px 12px;
-      border-radius:999px;
-      font-weight:800;
-      letter-spacing:.03em;
-      text-transform:uppercase;
-      white-space:nowrap;
-    }
-
-    .status-pending{background:#fff7ed;color:#9a3412;border:1px solid #fdba74}
-    .status-valid{background:#f0fdf4;color:#166534;border:1px solid #86efac}
-    .status-invalid{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5}
-
-    .step-list{
-      padding-left:18px;
-      display:grid;
-      gap:8px;
-    }
-
-    .step-list li{
-      font-size:14px;
-      color:var(--muted);
-    }
-
-    .step-list code{
-      background:#f1f5f9;
-      border:1px solid #e2e8f0;
-      padding:2px 6px;
-      border-radius:8px;
-      font-size:12px;
-    }
-
-    .challenge-note{
-      padding:16px;
-      border-radius:16px;
-      background:#eff6ff;
-      color:#1d4ed8;
-      border:1px solid #bfdbfe;
-      font-size:14px;
-      font-weight:600;
-    }
-
-    .cert-area h2{
-      font-size:28px;
-      margin-bottom:10px;
-    }
-
-    .cert-info-banner{
-      background:#fff7ed;
-      border:1px solid #fed7aa;
-      color:#9a3412;
-      border-radius:18px;
-      padding:16px;
-      margin:16px 0 20px;
-      font-size:14px;
-    }
-
-    .download-btns{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin:12px 0 20px;
-    }
-
-    .cert-area textarea{
-      width:100%;
-      min-height:190px;
-      border:1px solid #cbd5e1;
-      border-radius:16px;
-      padding:14px;
-      resize:vertical;
-      background:#f8fafc;
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;
-      font-size:12px;
-      color:#0f172a;
-    }
-
-    .cert-area label{
-      display:block;
-      font-weight:700;
-      margin:18px 0 8px;
-      font-size:14px;
-    }
-
-    .footer{
-      border-top:1px solid var(--line);
-      background:#fff;
-      margin-top:32px;
-    }
-
-    .footer-inner{
-      max-width:1200px;
-      margin:0 auto;
-      padding:24px 20px 40px;
-      text-align:center;
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .spinner{
-      display:inline-block;
-      width:18px;
-      height:18px;
-      border:2px solid rgba(255,255,255,.30);
-      border-top-color:#fff;
-      border-radius:50%;
-      animation:spin .8s linear infinite;
-    }
-
-    @keyframes spin{
-      to{transform:rotate(360deg)}
-    }
-
-    @media (max-width: 1040px){
-      .hero-inner,
-      .layout{
-        grid-template-columns:1fr;
-      }
-      .sidebar{
-        position:static;
-      }
-    }
-
-    @media (max-width: 760px){
-      .hero-inner{padding:40px 20px 28px}
-      .hero-copy h1{font-size:34px}
-      .hero-copy p{font-size:16px}
-      .header-inner{padding:14px 16px}
-      .main{padding:24px 16px 50px}
-      .panel{padding:20px}
-      .panel-header h2{font-size:24px}
-      .progress{grid-template-columns:1fr}
-      .form-grid,
-      .form-grid-3{
-        grid-template-columns:1fr;
-      }
-      .domain-input-row{
-        flex-direction:column;
-      }
-      .challenge-header{
-        align-items:flex-start;
-      }
-      .copy-field{
-        flex-direction:column;
-      }
-      .copy-btn{
-        min-height:42px;
-      }
-      .download-btns{
-        flex-direction:column;
-      }
-      .download-btns .btn-sm{
-        width:100%;
-      }
-      .brand-text{display:none}
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #d5d0ca;
+      color: #333;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .container {
+      background: #fff;
+      max-width: 800px;
+      width: 100%;
+      padding: 40px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      align-self: flex-start;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    h1 { font-size: 28px; color: #2c3e50; }
+    h2 { font-size: 20px; margin-bottom: 16px; }
+    p.desc { color: #555; margin-bottom: 12px; font-size: 15px; }
+    a { color: #c0392b; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .lang-select {
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #fff;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 15px;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #c0392b;
+    }
+    .domain-input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .domain-input-row input { flex: 1; }
+    .radio-group { display: flex; gap: 24px; margin-top: 4px; }
+    .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .radio-group input[type="radio"] { width: auto; }
+    .checkbox-group { margin-top: 4px; }
+    .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; }
+    .checkbox-group input[type="checkbox"] { width: auto; }
+    .btn {
+      display: inline-block;
+      padding: 12px 40px;
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn:hover { background: #a93226; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-secondary {
+      background: #2c3e50;
+      margin-top: 10px;
+    }
+    .btn-secondary:hover { background: #1a252f; }
+    .btn-sm { padding: 8px 16px; font-size: 13px; width: auto; }
+    .btn-wildcard {
+      padding: 10px 16px;
+      background: #8e44ad;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-wildcard:hover { background: #7d3c98; }
+    .hidden { display: none; }
+    .error { color: #c0392b; background: #ffeaea; border: 1px solid #f5c6cb; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+    .success { color: #155724; background: #d4edda; border: 1px solid #c3e6cb; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+    .info { color: #0c5460; background: #d1ecf1; border: 1px solid #bee5eb; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+    .challenge-card {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .challenge-header {
+      background: #f5f5f5;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+    }
+    .challenge-header h3 { font-size: 16px; margin: 0; }
+    .challenge-body { padding: 16px; }
+    .challenge-section { margin-bottom: 16px; }
+    .challenge-section:last-child { margin-bottom: 0; }
+    .challenge-section h4 { font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 10px; color: #555; }
+    .copy-field {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .copy-field input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: monospace;
+      background: #fafafa;
+    }
+    .copy-btn {
+      padding: 8px 12px;
+      background: #2c3e50;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .copy-btn:hover { background: #1a252f; }
+    .status-badge {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-valid { background: #d4edda; color: #155724; }
+    .status-invalid { background: #f8d7da; color: #721c24; }
+    .cert-area { margin-top: 20px; }
+    .cert-area textarea {
+      width: 100%;
+      height: 200px;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fafafa;
+      resize: vertical;
+    }
+    .cert-area label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .footer { text-align: center; margin-top: 24px; font-size: 13px; color: #888; }
+    .step-list { padding-left: 20px; }
+    .step-list li { margin-bottom: 8px; font-size: 14px; }
+    .download-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .auto-renew-section {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .auto-renew-section h4 {
+      font-size: 15px;
+      margin-bottom: 12px;
+      color: #2c3e50;
+    }
+    .auto-renew-fields { margin-top: 12px; }
+    .auto-renew-fields .form-group { margin-bottom: 12px; }
+    .auto-renew-fields input[type="number"] { width: 80px; }
+    .auto-renew-fields input[type="email"] { width: 100%; }
+    small { color: #888; font-size: 12px; margin-top: 4px; display: block; }
+    .cert-info-banner {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #856404;
+    }
+    .cert-info-banner strong { color: #533f03; }
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <div class="brand">
-        <img src="https://static.zebrabyte.ro/web/image/3839-d356d2ee/logo-zebra-white.webp" alt="ZebraByte logo">
-        <div class="brand-text">
-          <strong>ZebraByte SSL</strong>
-          <span>Free certificate generator</span>
-        </div>
-      </div>
-      <div class="header-actions">
-        <a href="https://zebrabyte.ro" class="header-link">ZebraByte.ro</a>
-        <select class="lang-select" id="lang-select" onchange="setLanguage(this.value)">
-          <option value="en">🇬🇧 English</option>
-          <option value="ro">🇷🇴 Română</option>
-        </select>
-      </div>
+  <div class="container">
+    <div class="top-bar">
+      <h1 data-i18n="title">Free SSL Certificate Generator</h1>
+      <select class="lang-select" id="lang-select" onchange="setLanguage(this.value)">
+        <option value="en">🇬🇧 English</option>
+        <option value="ro">🇷🇴 Română</option>
+      </select>
     </div>
-  </header>
+    <p class="desc" data-i18n="desc1">
+      Create a Free SSL Certificate in a few minutes (including Wildcard SSL).
+    </p>
+    <p class="desc" data-i18n-html="desc2">
+      Supported CAs: <strong>Let's Encrypt</strong> (90 days), <strong>ZeroSSL</strong> (90 days).
+    </p>
 
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-copy">
-        <h1 data-i18n="title">Free SSL Certificate Generator</h1>
-        <p data-i18n="desc1">Create a Free SSL Certificate in a few minutes (including Wildcard SSL).</p>
-        <p data-i18n-html="desc2">
-          Supported CAs: <strong>Let's Encrypt</strong> (90 days), <strong>ZeroSSL</strong> (90 days).
-        </p>
-        <div class="hero-points">
-          <div class="hero-pill">ACME</div>
-          <div class="hero-pill">Wildcard SSL</div>
-          <div class="hero-pill">HTTP / DNS Validation</div>
-          <div class="hero-pill">90 Days Validity</div>
+    <div id="error-msg" class="error hidden"></div>
+    <div id="success-msg" class="success hidden"></div>
+    <div id="info-msg" class="info hidden"></div>
+
+    <!-- Step 1: Order Form -->
+    <div id="order-form-section">
+      <form id="order-form">
+        <div class="form-group">
+          <label for="domains" data-i18n="domainLabel">Enter domain name(s)*</label>
+          <div class="domain-input-row">
+            <input type="text" id="domains" name="domains" placeholder="yourdomain.com" required>
+            <button type="button" class="btn-wildcard" id="wildcard-btn" onclick="toggleWildcard()" data-i18n="wildcardBtn">★ Wildcard</button>
+          </div>
+          <small data-i18n="domainHint">Use *.yourdomain.com for wildcard certificates. Wildcards require DNS verification.</small>
         </div>
-      </div>
-
-      <div class="hero-side">
-        <div class="hero-side-title">How it works</div>
-        <div class="mini-steps">
-          <div class="mini-step">
-            <div class="mini-step-num">1</div>
-            <div>
-              <h3>Create order</h3>
-              <p>Enter domain, email, CA, and validation method.</p>
-            </div>
+        <div class="form-group">
+          <label for="email" data-i18n="emailLabel">Enter Email*</label>
+          <input type="email" id="email" name="email" placeholder="youremail@gmail.com" required>
+        </div>
+        <div class="form-group">
+          <label data-i18n="caLabel">Certificate Authority</label>
+          <div class="radio-group">
+            <label><input type="radio" name="ca" value="letsencrypt" checked> Let's Encrypt</label>
+            <label><input type="radio" name="ca" value="zerossl"> ZeroSSL</label>
           </div>
-          <div class="mini-step">
-            <div class="mini-step-num">2</div>
-            <div>
-              <h3>Complete challenge</h3>
-              <p>Follow DNS or HTTP verification instructions.</p>
-            </div>
-          </div>
-          <div class="mini-step">
-            <div class="mini-step-num">3</div>
-            <div>
-              <h3>Download certificate</h3>
-              <p>Get CRT, private key, and CA bundle instantly.</p>
-            </div>
+          <small id="zerossl-note" class="hidden" data-i18n="zerosslNote">ZeroSSL is part of sectigo </small>
+        </div>
+        <div class="form-group">
+          <label data-i18n="verificationLabel">Verification Method</label>
+          <div class="radio-group">
+            <label id="http-label"><input type="radio" name="challengeType" value="http-01" checked> HTTP</label>
+            <label><input type="radio" name="challengeType" value="dns-01"> DNS</label>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <main class="main">
-    <div class="progress-wrap">
-      <div class="progress" id="progress-indicator">
-        <div class="progress-step active" id="progress-step-1">
-          <strong>Create</strong>
-          <span>Generate certificate order</span>
-        </div>
-        <div class="progress-step" id="progress-step-2">
-          <strong>Verify</strong>
-          <span>Complete domain validation</span>
-        </div>
-        <div class="progress-step" id="progress-step-3">
-          <strong>Download</strong>
-          <span>Get your certificate files</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="layout">
-      <div>
-        <div id="error-msg" class="message error hidden"></div>
-        <div id="success-msg" class="message success hidden"></div>
-        <div id="info-msg" class="message info hidden"></div>
-
-        <section class="panel" id="order-form-section">
-          <div class="panel-header">
-            <div class="eyebrow">Step 1</div>
-            <h2>Generate your SSL order</h2>
-            <p>Keep the original ACME logic, but present it in a premium interface. Enter your domain, choose the certificate authority, and continue to verification.</p>
+        <!-- Auto-Renewal Options -->
+        <div class="auto-renew-section">
+          <h4 data-i18n="autoRenewTitle"> Auto-Renewal</h4>
+          <div class="checkbox-group">
+            <label>
+              <input type="checkbox" id="auto-renew" name="autoRenew">
+              <span data-i18n="autoRenewEnable">Enable automatic certificate renewal</span>
+            </label>
           </div>
-
-          <form id="order-form" class="stack">
+          <small data-i18n="autoRenewHint">Certificate will be automatically renewed before expiry as long as DNS records are configured. Requires KV storage and CF_API_TOKEN secret.</small>
+          <div id="auto-renew-fields" class="auto-renew-fields hidden">
             <div class="form-group">
-              <label for="domains" data-i18n="domainLabel">Enter domain name(s)*</label>
-              <div class="domain-input-row">
-                <input type="text" id="domains" name="domains" placeholder="yourdomain.com" required>
-                <button type="button" class="btn-wildcard" id="wildcard-btn" onclick="toggleWildcard()" data-i18n="wildcardBtn">★ Wildcard</button>
-              </div>
-              <small data-i18n="domainHint">Use *.yourdomain.com for wildcard certificates. Wildcards require DNS verification.</small>
+              <label data-i18n="notifyEmailLabel">Notification Email</label>
+              <input type="email" id="notify-email" name="notifyEmail" placeholder="notify@example.com">
+              <small data-i18n="notifyEmailHint">Receive notifications about renewal status (optional).</small>
             </div>
-
             <div class="form-group">
-              <label for="email" data-i18n="emailLabel">Enter Email*</label>
-              <input type="email" id="email" name="email" placeholder="youremail@gmail.com" required>
+              <label data-i18n="renewDaysLabel">Renew before expiry (days)</label>
+              <input type="number" id="renew-days" name="notifyDaysBefore" value="30" min="1" max="60">
             </div>
-
-            <div class="form-grid">
-              <div class="form-group">
-                <label data-i18n="caLabel">Certificate Authority</label>
-                <div class="radio-group">
-                  <label><input type="radio" name="ca" value="letsencrypt" checked> Let's Encrypt</label>
-                  <label><input type="radio" name="ca" value="zerossl"> ZeroSSL</label>
-                </div>
-                <small id="zerossl-note" class="hidden" data-i18n="zerosslNote">ZeroSSL is part of sectigo</small>
-              </div>
-
-              <div class="form-group">
-                <label data-i18n="verificationLabel">Verification Method</label>
-                <div class="radio-group">
-                  <label id="http-label"><input type="radio" name="challengeType" value="http-01" checked> HTTP</label>
-                  <label><input type="radio" name="challengeType" value="dns-01"> DNS</label>
-                </div>
-              </div>
-            </div>
-
-            <div class="auto-renew-section">
-              <h4 data-i18n="autoRenewTitle">Auto-Renewal</h4>
-              <div class="checkbox-group">
-                <label>
-                  <input type="checkbox" id="auto-renew" name="autoRenew">
-                  <span data-i18n="autoRenewEnable">Enable automatic certificate renewal</span>
-                </label>
-              </div>
-              <small data-i18n="autoRenewHint">Certificate will be automatically renewed before expiry as long as DNS records are configured. Requires KV storage and CF_API_TOKEN secret.</small>
-
-              <div id="auto-renew-fields" class="auto-renew-fields hidden">
-                <div class="form-group">
-                  <label data-i18n="notifyEmailLabel">Notification Email</label>
-                  <input type="email" id="notify-email" name="notifyEmail" placeholder="notify@example.com">
-                  <small data-i18n="notifyEmailHint">Receive notifications about renewal status (optional).</small>
-                </div>
-
-                <div class="form-group">
-                  <label data-i18n="renewDaysLabel">Renew before expiry (days)</label>
-                  <input type="number" id="renew-days" name="notifyDaysBefore" value="30" min="1" max="60">
-                </div>
-              </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary" id="create-btn" data-i18n="createBtn">CREATE FREE SSL CERTIFICATE</button>
-          </form>
-        </section>
-
-        <section class="panel hidden" id="challenges-section">
-          <div class="panel-header">
-            <div class="eyebrow">Step 2</div>
-            <h2 data-i18n="challengeTitle">Complete Domain Verification</h2>
-            <p>Follow the exact challenge instructions below. After DNS or HTTP validation is correctly configured, continue to certificate issuance.</p>
           </div>
-
-          <div class="challenge-note" data-i18n="setupInfo">
-            Set up the verification below, then click "Verify & Get Certificate".
-          </div>
-
-          <div id="challenges-list" class="challenge-grid"></div>
-
-          <div class="split-line"></div>
-
-          <button class="btn btn-primary" id="verify-btn" data-i18n="verifyBtn">VERIFY &amp; GET CERTIFICATE</button>
-        </section>
-
-        <section class="panel hidden cert-area" id="cert-section">
-          <div class="panel-header">
-            <div class="eyebrow">Step 3</div>
-            <h2 data-i18n="certTitle">Your SSL Certificate</h2>
-            <p>Your certificate has been issued successfully. Download the files below and keep your private key secure.</p>
-          </div>
-
-          <div class="cert-info-banner" id="cert-validity-banner">
-            <span data-i18n-html="certValidityInfo"></span>
-          </div>
-
-          <div class="download-btns">
-            <button class="btn btn-primary btn-sm" onclick="downloadFile('cert')" data-i18n="downloadCert">Download Certificate</button>
-            <button class="btn btn-secondary btn-sm" onclick="downloadFile('key')" data-i18n="downloadKey">Download Private Key</button>
-            <button class="btn btn-secondary btn-sm" onclick="downloadFile('chain')" data-i18n="downloadChain">Download CA Bundle</button>
-          </div>
-
-          <label for="cert-output" data-i18n="certLabel">Certificate (CRT)</label>
-          <textarea id="cert-output" readonly></textarea>
-
-          <label for="key-output" data-i18n="keyLabel">Private Key</label>
-          <textarea id="key-output" readonly></textarea>
-
-          <label for="chain-output" data-i18n="chainLabel">CA Bundle / Intermediate Certificate</label>
-          <textarea id="chain-output" readonly></textarea>
-
-          <div style="margin-top:18px;">
-            <button class="btn btn-soft" onclick="resetForm()" data-i18n="generateAnother">Generate Another Certificate</button>
-          </div>
-        </section>
-      </div>
-
-      <aside class="sidebar">
-        <div class="sidebar-card">
-          <h3>Included</h3>
-          <ul>
-            <li>Let's Encrypt support</li>
-            <li>ZeroSSL support</li>
-            <li>Wildcard certificates</li>
-            <li>HTTP and DNS validation</li>
-            <li>Optional renewal settings</li>
-          </ul>
         </div>
 
-        <div class="sidebar-card">
-          <h3>Notes</h3>
-          <ul>
-            <li>Wildcard certificates require DNS verification.</li>
-            <li>Certificate validity is typically 90 days.</li>
-            <li>DNS propagation may take a few minutes.</li>
-            <li>Keep the private key secure and never share it.</li>
-          </ul>
+        <div style="margin-top: 20px;">
+          <button type="submit" class="btn" id="create-btn" data-i18n="createBtn">CREATE FREE SSL CERTIFICATE</button>
         </div>
-      </aside>
+      </form>
     </div>
-  </main>
 
-  <footer class="footer">
-    <div class="footer-inner">
+    <!-- Step 2: Challenges -->
+    <div id="challenges-section" class="hidden">
+      <h2 data-i18n="challengeTitle">Complete Domain Verification</h2>
+      <div id="challenges-list"></div>
+      <button class="btn btn-secondary" id="verify-btn" data-i18n="verifyBtn">VERIFY &amp; GET CERTIFICATE</button>
+    </div>
+
+    <!-- Step 3: Certificate -->
+    <div id="cert-section" class="hidden cert-area">
+      <h2 data-i18n="certTitle">Your SSL Certificate</h2>
+      <div class="cert-info-banner" id="cert-validity-banner">
+        <span data-i18n-html="certValidityInfo"></span>
+      </div>
+      <div class="download-btns">
+        <button class="btn btn-sm" onclick="downloadFile('cert')" data-i18n="downloadCert">Download Certificate</button>
+        <button class="btn btn-sm btn-secondary" onclick="downloadFile('key')" data-i18n="downloadKey">Download Private Key</button>
+        <button class="btn btn-sm btn-secondary" onclick="downloadFile('chain')" data-i18n="downloadChain">Download CA Bundle</button>
+      </div>
+      <label for="cert-output" data-i18n="certLabel">Certificate (CRT)</label>
+      <textarea id="cert-output" readonly></textarea>
+      <label for="key-output" data-i18n="keyLabel">Private Key</label>
+      <textarea id="key-output" readonly></textarea>
+      <label for="chain-output" data-i18n="chainLabel">CA Bundle / Intermediate Certificate</label>
+      <textarea id="chain-output" readonly></textarea>
+      <div style="margin-top:16px;">
+        <button class="btn" onclick="resetForm()" data-i18n="generateAnother">Generate Another Certificate</button>
+      </div>
+    </div>
+
+    <div class="footer">
       <p data-i18n="footer">This tool uses the ACME protocol to generate SSL certificates.</p>
     </div>
-  </footer>
+  </div>
 
   <script>
     // ========== i18n Translations ==========
@@ -1058,7 +349,7 @@
       en: {
         title: 'Free SSL Certificate Generator',
         desc1: 'Create a Free SSL Certificate in a few minutes (including Wildcard SSL).',
-        desc2: 'Supported CAs: <strong>Let\\'s Encrypt</strong> (90 days), <strong>ZeroSSL</strong> (90 days).',
+        desc2: 'Supported CAs: <strong>Let\'s Encrypt</strong> (90 days), <strong>ZeroSSL</strong> (90 days).',
         domainLabel: 'Enter domain name(s)*',
         domainHint: 'Use *.yourdomain.com for wildcard certificates. Wildcards require DNS verification.',
         emailLabel: 'Enter Email*',
@@ -1067,9 +358,9 @@
         verificationLabel: 'Verification Method',
         wildcardBtn: '★ Wildcard',
         createBtn: 'CREATE FREE SSL CERTIFICATE',
-        autoRenewTitle: 'Auto-Renewal',
+        autoRenewTitle: ' Auto-Renewal',
         autoRenewEnable: 'Enable automatic certificate renewal',
-        autoRenewHint: 'Certificate will be automatically renewed before expiry as long as DNS records are configured.',
+        autoRenewHint: 'Certificate will be automatically renewed before expiry as long as DNS records are configured. Requires KV storage and CF_API_TOKEN secret.',
         notifyEmailLabel: 'Notification Email',
         notifyEmailHint: 'Receive notifications about renewal status (optional).',
         renewDaysLabel: 'Renew before expiry (days)',
@@ -1094,8 +385,8 @@
         copied: 'Copied!',
         downloadFile: 'Download File',
         httpStep1: 'Download the verification file:',
-        httpStep2: 'Create the directory <code>.well-known/acme-challenge/</code> in your domain\\'s root folder.',
-        httpStep3Pre: 'Upload the file to that directory so it\\'s accessible at:',
+        httpStep2: 'Create the directory <code>.well-known/acme-challenge/</code> in your domain\'s root folder.',
+        httpStep3Pre: 'Upload the file to that directory so it\'s accessible at:',
         noChallenge: 'No challenge available for this verification method.',
         pending: 'Pending',
         verified: 'Verified',
@@ -1113,7 +404,7 @@
       ro: {
         title: 'Generator Gratuit de Certificate SSL',
         desc1: 'Creează un Certificat SSL Gratuit în câteva minute (inclusiv Wildcard SSL).',
-        desc2: 'CA-uri suportate: <strong>Let\\'s Encrypt</strong> (90 zile), <strong>ZeroSSL</strong> (90 zile).',
+        desc2: 'CA-uri suportate: <strong>Let\'s Encrypt</strong> (90 zile), <strong>ZeroSSL</strong> (90 zile).',
         domainLabel: 'Introduceți numele domeniului(ilor)*',
         domainHint: 'Folosiți *.domeniultau.com pentru certificate wildcard. Wildcard-urile necesită verificare DNS.',
         emailLabel: 'Introduceți Email*',
@@ -1122,9 +413,9 @@
         verificationLabel: 'Metodă de Verificare',
         wildcardBtn: '★ Wildcard',
         createBtn: 'CREEAZĂ CERTIFICAT SSL GRATUIT',
-        autoRenewTitle: 'Reînnoire Automată',
+        autoRenewTitle: ' Reînnoire Automată',
         autoRenewEnable: 'Activează reînnoirea automată a certificatului',
-        autoRenewHint: 'Certificatul va fi reînnoit automat înainte de expirare atât timp cât înregistrările DNS sunt configurate.',
+        autoRenewHint: 'Certificatul va fi reînnoit automat înainte de expirare atât timp cât înregistrările DNS sunt configurate. Necesită stocare KV și secretul CF_API_TOKEN.',
         notifyEmailLabel: 'Email de Notificare',
         notifyEmailHint: 'Primiți notificări despre starea reînnoirii (opțional).',
         renewDaysLabel: 'Reînnoiește înainte de expirare (zile)',
@@ -1182,26 +473,26 @@
     }
 
     function applyTranslations() {
+      // Text content translations
       document.querySelectorAll('[data-i18n]').forEach(function(el) {
         var key = el.getAttribute('data-i18n');
         if (key) el.textContent = t(key);
       });
-
+      // HTML translations (for bold text etc.)
       document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
         var key = el.getAttribute('data-i18n-html');
         if (key) el.innerHTML = t(key);
       });
-
+      // Update dynamic placeholder text
       var domainsInput = document.getElementById('domains');
       if (domainsInput) domainsInput.placeholder = currentLang === 'ro' ? 'domeniultau.com' : 'yourdomain.com';
-
       var emailInput = document.getElementById('email');
       if (emailInput) emailInput.placeholder = currentLang === 'ro' ? 'emailultau@gmail.com' : 'youremail@gmail.com';
-
       var notifyInput = document.getElementById('notify-email');
       if (notifyInput) notifyInput.placeholder = currentLang === 'ro' ? 'notificare@exemplu.com' : 'notify@example.com';
-
+      // Update page title
       document.title = t('title');
+      // Update wildcard button state
       updateWildcardButton();
     }
 
@@ -1220,17 +511,6 @@
     var verifyBtn = document.getElementById('verify-btn');
     var challengesList = document.getElementById('challenges-list');
     var zerosslNote = document.getElementById('zerossl-note');
-
-    // ========== Progress Helper ==========
-    function setProgress(step){
-      var s1 = document.getElementById('progress-step-1');
-      var s2 = document.getElementById('progress-step-2');
-      var s3 = document.getElementById('progress-step-3');
-      [s1,s2,s3].forEach(function(el){ if(el) el.classList.remove('active'); });
-      if(step === 1 && s1) s1.classList.add('active');
-      if(step === 2 && s2) s2.classList.add('active');
-      if(step === 3 && s3) s3.classList.add('active');
-    }
 
     // ========== CA Selection ==========
     document.querySelectorAll('input[name="ca"]').forEach(function(radio) {
@@ -1252,11 +532,13 @@
     function toggleWildcard() {
       var val = domainsInput.value.trim();
       if (hasWildcard()) {
+        // Remove wildcard prefix from all domains
         domainsInput.value = val.split(',').map(function(d) {
           d = d.trim();
           return d.startsWith('*.') ? d.slice(2) : d;
         }).join(', ');
       } else {
+        // Add wildcard for the first domain
         if (val && !hasWildcard()) {
           var baseDomain = val.split(',')[0].trim();
           domainsInput.value = val + ', *.' + baseDomain;
@@ -1273,10 +555,10 @@
       var btn = document.getElementById('wildcard-btn');
       if (hasWildcard()) {
         btn.textContent = t('wildcardActive');
-        btn.style.background = 'linear-gradient(135deg,#16a34a,#22c55e)';
+        btn.style.background = '#27ae60';
       } else {
         btn.textContent = t('wildcardBtn');
-        btn.style.background = 'linear-gradient(135deg,#7c3aed,#9333ea)';
+        btn.style.background = '#8e44ad';
       }
     }
 
@@ -1284,7 +566,7 @@
       if (hasWildcard()) {
         dnsRadio.checked = true;
         httpRadio.disabled = true;
-        httpRadio.parentElement.style.opacity = '0.55';
+        httpRadio.parentElement.style.opacity = '0.5';
         httpRadio.parentElement.title = t('wildcardRequiresDns');
       } else {
         httpRadio.disabled = false;
@@ -1313,28 +595,25 @@
       successMsg.classList.add('hidden');
       infoMsg.classList.add('hidden');
     }
-
     function showSuccess(msg) {
       successMsg.textContent = msg;
       successMsg.classList.remove('hidden');
       errorMsg.classList.add('hidden');
       infoMsg.classList.add('hidden');
     }
-
     function showInfo(msg) {
       infoMsg.textContent = msg;
       infoMsg.classList.remove('hidden');
       errorMsg.classList.add('hidden');
       successMsg.classList.add('hidden');
     }
-
     function hideMessages() {
       errorMsg.classList.add('hidden');
       successMsg.classList.add('hidden');
       infoMsg.classList.add('hidden');
     }
 
-    // ========== HTML Escaping ==========
+    // ========== HTML Escaping (XSS prevention) ==========
     function escapeHtml(str) {
       var div = document.createElement('div');
       div.appendChild(document.createTextNode(str));
@@ -1342,7 +621,7 @@
     }
 
     function escapeJsString(str) {
-      return str.replace(/\\\\/g, '\\\\\\\\').replace(/'/g, "\\\\'").replace(/"/g, '\\\\"');
+      return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
     }
 
     // ========== Create Order ==========
@@ -1371,7 +650,6 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
-
         var result = await resp.json();
 
         if (!resp.ok || result.error) {
@@ -1390,10 +668,7 @@
         renderChallenges(result.authorizations, formData.get('challengeType'));
         orderFormSection.classList.add('hidden');
         challengesSection.classList.remove('hidden');
-        certSection.classList.add('hidden');
-        setProgress(2);
         showInfo(t('setupInfo'));
-        challengesSection.scrollIntoView({behavior:'smooth', block:'start'});
       } catch (err) {
         var msg = err.message;
         if (msg.includes('Failed to fetch ACME directory')) {
@@ -1415,10 +690,9 @@
         card.className = 'challenge-card';
 
         var statusText = auth.verified === null ? t('pending') :
-                         auth.verified ? t('verified') : t('failed');
-
+                          auth.verified ? t('verified') : t('failed');
         var statusClass = auth.verified === null ? 'status-pending' :
-                          auth.verified ? 'status-valid' : 'status-invalid';
+                           auth.verified ? 'status-valid' : 'status-invalid';
 
         var bodyHTML = '';
         var safeDomain = escapeHtml(auth.domain);
@@ -1426,17 +700,17 @@
         if (challengeType === 'http-01' && auth.challenges.http) {
           var http = auth.challenges.http;
           var safeToken = escapeHtml(http.token);
-
           bodyHTML =
             '<div class="challenge-section">' +
               '<h4>' + escapeHtml(t('httpVerification')) + '</h4>' +
               '<ol class="step-list">' +
                 '<li>' + escapeHtml(t('httpStep1')) +
-                  '<br><button class="copy-btn" style="margin-top:8px;" onclick="downloadVerificationFile(' + idx + ')">' + escapeHtml(t('downloadFile')) + '</button>' +
+                  '<br><button class="copy-btn" style="margin-top:6px;" onclick="downloadVerificationFile(' + idx + ')">' + escapeHtml(t('downloadFile')) + '</button>' +
                 '</li>' +
                 '<li>' + t('httpStep2') + '</li>' +
                 '<li>' + escapeHtml(t('httpStep3Pre')) +
-                  '<br><a href="http://' + safeDomain + '/.well-known/acme-challenge/' + safeToken + '" target="_blank" rel="noopener noreferrer" style="word-break:break-all; color:#2563eb; font-size:13px; font-weight:600; margin-top:6px; display:inline-block;">' +
+                  '<br><a href="http://' + safeDomain + '/.well-known/acme-challenge/' + safeToken + '" target="_blank" rel="noopener noreferrer"' +
+                    ' style="word-break:break-all; color:#c0392b; font-size:13px;">' +
                     'http://' + safeDomain + '/.well-known/acme-challenge/' + safeToken + '</a>' +
                 '</li>' +
               '</ol>' +
@@ -1447,25 +721,22 @@
           var safeValue = escapeHtml(dns.value);
           var jsName = escapeJsString(dns.name);
           var jsValue = escapeJsString(dns.value);
-
           bodyHTML =
             '<div class="challenge-section">' +
               '<h4>' + escapeHtml(t('dnsVerification')) + '</h4>' +
-              '<p style="margin-bottom:12px;">' + escapeHtml(t('dnsInstructions')) + '</p>' +
-              '<div style="display:grid;gap:12px;">' +
-                '<div>' +
-                  '<label style="font-size:13px;font-weight:700;margin-bottom:6px;display:block;">' + escapeHtml(t('name')) + '</label>' +
-                  '<div class="copy-field">' +
-                    '<input type="text" value="' + safeName + '" readonly>' +
-                    '<button class="copy-btn" onclick="copyText(this, \'' + jsName + '\')">' + escapeHtml(t('copy')) + '</button>' +
-                  '</div>' +
+              '<p style="font-size:14px; margin-bottom:10px;">' + escapeHtml(t('dnsInstructions')) + '</p>' +
+              '<div style="margin-bottom:8px;">' +
+                '<label style="font-size:13px; font-weight:600; margin-bottom:4px; display:block;">' + escapeHtml(t('name')) + '</label>' +
+                '<div class="copy-field">' +
+                  '<input type="text" value="' + safeName + '" readonly>' +
+                  '<button class="copy-btn" onclick="copyText(this, \'' + jsName + '\')">' + escapeHtml(t('copy')) + '</button>' +
                 '</div>' +
-                '<div>' +
-                  '<label style="font-size:13px;font-weight:700;margin-bottom:6px;display:block;">' + escapeHtml(t('value')) + '</label>' +
-                  '<div class="copy-field">' +
-                    '<input type="text" value="' + safeValue + '" readonly>' +
-                    '<button class="copy-btn" onclick="copyText(this, \'' + jsValue + '\')">' + escapeHtml(t('copy')) + '</button>' +
-                  '</div>' +
+              '</div>' +
+              '<div>' +
+                '<label style="font-size:13px; font-weight:600; margin-bottom:4px; display:block;">' + escapeHtml(t('value')) + '</label>' +
+                '<div class="copy-field">' +
+                  '<input type="text" value="' + safeValue + '" readonly>' +
+                  '<button class="copy-btn" onclick="copyText(this, \'' + jsValue + '\')">' + escapeHtml(t('copy')) + '</button>' +
                 '</div>' +
               '</div>' +
             '</div>';
@@ -1498,7 +769,6 @@
       if (!orderState) return;
       var auth = orderState.authorizations[idx];
       if (!auth.challenges.http) return;
-
       var blob = new Blob([auth.challenges.http.content], { type: 'text/plain' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
@@ -1534,7 +804,6 @@
             notifyDaysBefore: orderState.notifyDaysBefore,
           }),
         });
-
         var result = await resp.json();
 
         if (!resp.ok || result.error) {
@@ -1548,9 +817,7 @@
 
           challengesSection.classList.add('hidden');
           certSection.classList.remove('hidden');
-          setProgress(3);
           showSuccess(t('certSuccess'));
-          certSection.scrollIntoView({behavior:'smooth', block:'start'});
         } else {
           showError(result.error || t('verifyFailed'));
         }
@@ -1578,12 +845,9 @@
           content = document.getElementById('chain-output').value;
           filename = 'ca_bundle.crt';
           break;
-        default:
-          return;
+        default: return;
       }
-
       if (!content) return;
-
       var blob = new Blob([content], { type: 'text/plain' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
@@ -1605,15 +869,10 @@
       zerosslNote.classList.add('hidden');
       updateWildcardButton();
       updateChallengeOptions();
-      setProgress(1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // ========== Initialize ==========
     setLanguage(currentLang);
-    updateChallengeOptions();
-    updateWildcardButton();
-    setProgress(1);
   </script>
 </body>
 </html>
