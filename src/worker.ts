@@ -16,6 +16,9 @@ export interface Env {
   // to avoid Cloudflare-edge → Let's Encrypt TLS handshake failures (HTTP 525).
   // Set via: wrangler secret put ACME_ENGINE_URL
   ACME_ENGINE_URL?: string;
+  // Shared secret between this Worker and the Railway ACME engine.
+  // Must match ENGINE_TOKEN environment variable set on Railway.
+  ENGINE_TOKEN?: string;
 }
 
 export default {
@@ -23,7 +26,7 @@ export default {
     const url = new URL(request.url);
 
     // Configure ACME engine proxy for this request (Railway relay to avoid CF→LE 525 errors)
-    configureAcmeEngine(env.ACME_ENGINE_URL);
+    configureAcmeEngine(env.ACME_ENGINE_URL, env.ENGINE_TOKEN);
 
     // Handle API routes
     if (url.pathname.startsWith('/api/')) {

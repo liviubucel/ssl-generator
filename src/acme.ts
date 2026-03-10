@@ -23,9 +23,11 @@ const FAST_LE_TIMEOUT_MS = 2500;
 // When set, all ACME HTTP calls are relayed through the Railway backend so that
 // Cloudflare-edge → Let's Encrypt TLS handshake issues (HTTP 525) are avoided.
 let _acmeEngineUrl: string | undefined;
+let _acmeEngineToken: string | undefined;
 
-export function configureAcmeEngine(url: string | undefined): void {
+export function configureAcmeEngine(url: string | undefined, token?: string): void {
   _acmeEngineUrl = url;
+  _acmeEngineToken = token;
 }
 
 /**
@@ -50,9 +52,14 @@ async function acmeFetch(url: string, init?: RequestInit): Promise<Response> {
 
   const body = init?.body != null ? String(init.body) : undefined;
 
+  const proxyHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (_acmeEngineToken) {
+    proxyHeaders['Authorization'] = `Bearer ${_acmeEngineToken}`;
+  }
+
   return fetch(`${_acmeEngineUrl}/api/acme-proxy`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: proxyHeaders,
     body: JSON.stringify({ url, method, headers: rawHeaders, body }),
   });
 }
