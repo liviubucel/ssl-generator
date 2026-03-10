@@ -624,6 +624,21 @@
       return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
     }
 
+    async function parseApiResponse(resp) {
+      var raw = await resp.text();
+      var contentType = resp.headers.get('content-type') || '';
+
+      if (contentType.includes('application/json')) {
+        return JSON.parse(raw || '{}');
+      }
+
+      try {
+        return JSON.parse(raw);
+      } catch {
+        throw new Error('API returned non-JSON response (HTTP ' + resp.status + '). Check Vercel function logs. Response: ' + raw.slice(0, 300));
+      }
+    }
+
     // ========== Create Order ==========
     orderForm.addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -650,10 +665,14 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
-        var result = await resp.json();
+        var result = await parseApiResponse(resp);
 
         if (!resp.ok || result.error) {
-          throw new Error(result.error || 'Failed to create order');
+          throw new Error(result.error || ('Failed to create order (HTTP ' + resp.status + ')'));
+        }
+
+        if (!Array.isArray(result.authorizations)) {
+          throw new Error('API response is invalid: missing authorizations. Verify Vercel serverless functions are deployed correctly.');
         }
 
         orderState = {
@@ -804,10 +823,10 @@
             notifyDaysBefore: orderState.notifyDaysBefore,
           }),
         });
-        var result = await resp.json();
+        var result = await parseApiResponse(resp);
 
         if (!resp.ok || result.error) {
-          throw new Error(result.error || 'Verification failed');
+          throw new Error(result.error || ('Verification failed (HTTP ' + resp.status + ')'));
         }
 
         if (result.status === 'valid' && result.certificate) {
