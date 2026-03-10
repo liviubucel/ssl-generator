@@ -139,6 +139,11 @@ export async function generateCSR(
 }
 
 export function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const BufferCtor = (globalThis as any).Buffer;
+  if (BufferCtor) {
+    return BufferCtor.from(new Uint8Array(buffer)).toString('base64');
+  }
+
   const bytes = new Uint8Array(buffer);
   let binary = '';
   for (const byte of bytes) {
@@ -148,6 +153,12 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
 }
 
 export function base64ToArrayBuffer(base64: string): ArrayBuffer {
+  const BufferCtor = (globalThis as any).Buffer;
+  if (BufferCtor) {
+    const buf = BufferCtor.from(base64, 'base64');
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  }
+
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
