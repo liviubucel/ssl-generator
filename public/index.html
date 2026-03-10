@@ -331,7 +331,8 @@
             <label><input type="radio" name="ca" value="letsencrypt" checked> Let's Encrypt</label>
             <label><input type="radio" name="ca" value="zerossl"> ZeroSSL</label>
           </div>
-          <small id="zerossl-note" class="hidden" data-i18n="zerosslNote">ZeroSSL is part of sectigo </small>
+          <small id="zerossl-note" class="hidden" data-i18n="zerosslNote">ZeroSSL is part of Sectigo.</small>
+          <small id="le-note" data-i18n="leNote">Let's Encrypt is a free CA. No support is provided by Zebrabyte for this option.</small>
         </div>
         <div class="form-group">
           <label data-i18n="verificationLabel">Verification Method</label>
@@ -395,11 +396,20 @@
         <button class="btn btn-sm btn-secondary" onclick="downloadFile('key')" data-i18n="downloadKey">Download Private Key</button>
         <button class="btn btn-sm btn-secondary" onclick="downloadFile('chain')" data-i18n="downloadChain">Download CA Bundle</button>
       </div>
-      <label for="cert-output" data-i18n="certLabel">Certificate (CRT)</label>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;margin-bottom:4px;">
+        <label for="cert-output" data-i18n="certLabel">Certificate (CRT)</label>
+        <button class="copy-btn" onclick="copyTextarea('cert-output', this)" data-i18n="copy">Copy</button>
+      </div>
       <textarea id="cert-output" readonly></textarea>
-      <label for="key-output" data-i18n="keyLabel">Private Key</label>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;margin-bottom:4px;">
+        <label for="key-output" data-i18n="keyLabel">Private Key</label>
+        <button class="copy-btn" onclick="copyTextarea('key-output', this)" data-i18n="copy">Copy</button>
+      </div>
       <textarea id="key-output" readonly></textarea>
-      <label for="chain-output" data-i18n="chainLabel">CA Bundle / Intermediate Certificate</label>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;margin-bottom:4px;">
+        <label for="chain-output" data-i18n="chainLabel">CA Bundle / Intermediate Certificate</label>
+        <button class="copy-btn" onclick="copyTextarea('chain-output', this)" data-i18n="copy">Copy</button>
+      </div>
       <textarea id="chain-output" readonly></textarea>
       <div style="margin-top:16px;">
         <button class="btn" onclick="resetForm()" data-i18n="generateAnother">Generate Another Certificate</button>
@@ -422,13 +432,14 @@
         domainHint: 'Use *.yourdomain.com for wildcard certificates. Wildcards require DNS verification.',
         emailLabel: 'Enter Email*',
         caLabel: 'Certificate Authority',
-        zerosslNote: 'ZeroSSL is part of Sectigo.',
+        zerosslNote: 'ZeroSSL is part of Sectigo. Zebrabyte provides full support for this option.',
+        leNote: "Let's Encrypt is a free CA. No support is provided by Zebrabyte for this option.",
         verificationLabel: 'Verification Method',
         wildcardBtn: '★ Wildcard',
         createBtn: 'CREATE FREE SSL CERTIFICATE',
         autoRenewTitle: ' Auto-Renewal',
         autoRenewEnable: 'Enable automatic certificate renewal',
-        autoRenewHint: 'Certificate will be automatically renewed before expiry as long as DNS records are configured.',
+        autoRenewHint: 'Certificate will be automatically renewed before expiry as long as DNS records are configured. Requires KV storage and CF_API_TOKEN secret.',
         notifyEmailLabel: 'Notification Email',
         notifyEmailHint: 'Receive notifications about renewal status (optional).',
         renewDaysLabel: 'Renew before expiry (days)',
@@ -468,7 +479,7 @@
         setupInfo: 'Set up the verification below, then click "Verify & Get Certificate".',
         wildcardActive: '★ Wildcard ✓',
         wildcardRequiresDns: 'Wildcard certificates require DNS verification',
-        tutorialBar: ' For a step-by-step tutorial with video — <a href="#" target="_blank">Check the tutorial</a>',
+        tutorialBar: '📖 For a step-by-step tutorial with video — <a href="#" target="_blank">Check the tutorial</a>',
         tosText: 'I agree to the <a href="https://www.zebrabyte.ro/legal" target="_blank" rel="noopener">Zebrabyte Terms &amp; Conditions</a> and the <a href="https://letsencrypt.org/documents/LE-SA-v1.3-September-21-2022.pdf" target="_blank" rel="noopener">Let\'s Encrypt Subscriber Agreement</a>.',
         tosError: 'Please accept the Terms & Conditions to continue.',
       },
@@ -480,13 +491,14 @@
         domainHint: 'Folosiți *.domeniultau.com pentru certificate wildcard. Wildcard-urile necesită verificare DNS.',
         emailLabel: 'Introduceți Email*',
         caLabel: 'Autoritate de Certificare',
-        zerosslNote: 'ZeroSSL face parte din grupul Sectigo.',
+        zerosslNote: 'ZeroSSL face parte din grupul Sectigo. Zebrabyte oferă suport complet pentru această opțiune.',
+        leNote: "Let's Encrypt este un CA gratuit. Zebrabyte nu oferă suport pentru această opțiune.",
         verificationLabel: 'Metodă de Verificare',
         wildcardBtn: '★ Wildcard',
         createBtn: 'CREEAZĂ CERTIFICAT SSL GRATUIT',
         autoRenewTitle: ' Reînnoire Automată',
         autoRenewEnable: 'Activează reînnoirea automată a certificatului',
-        autoRenewHint: 'Certificatul va fi reînnoit automat înainte de expirare atât timp cât înregistrările DNS sunt configurate.',
+        autoRenewHint: 'Certificatul va fi reînnoit automat înainte de expirare atât timp cât înregistrările DNS sunt configurate. Necesită stocare KV și secretul CF_API_TOKEN.',
         notifyEmailLabel: 'Email de Notificare',
         notifyEmailHint: 'Primiți notificări despre starea reînnoirii (opțional).',
         renewDaysLabel: 'Reînnoiește înainte de expirare (zile)',
@@ -526,7 +538,7 @@
         setupInfo: 'Configurați verificarea de mai jos, apoi faceți clic pe „Verifică și Obține Certificatul".',
         wildcardActive: '★ Wildcard ✓',
         wildcardRequiresDns: 'Certificatele wildcard necesită verificare DNS',
-        tutorialBar: ' Pentru un tutorial pas cu pas cu video — <a href="#" target="_blank">Vezi tutorialul</a>',
+        tutorialBar: '📖 Pentru un tutorial pas cu pas cu video — <a href="#" target="_blank">Vezi tutorialul</a>',
         tosText: 'Sunt de acord cu <a href="https://www.zebrabyte.ro/legal" target="_blank" rel="noopener">Termenii și Condițiile Zebrabyte</a> și cu <a href="https://letsencrypt.org/documents/LE-SA-v1.3-September-21-2022.pdf" target="_blank" rel="noopener">Acordul Let\'s Encrypt</a>.',
         tosError: 'Vă rugăm să acceptați Termenii și Condițiile pentru a continua.',
       }
@@ -585,11 +597,13 @@
     var verifyBtn = document.getElementById('verify-btn');
     var challengesList = document.getElementById('challenges-list');
     var zerosslNote = document.getElementById('zerossl-note');
+    var leNote = document.getElementById('le-note');
 
     // ========== CA Selection ==========
     document.querySelectorAll('input[name="ca"]').forEach(function(radio) {
       radio.addEventListener('change', function(e) {
         zerosslNote.classList.toggle('hidden', e.target.value !== 'zerossl');
+        leNote.classList.toggle('hidden', e.target.value !== 'letsencrypt');
       });
     });
 
@@ -1021,6 +1035,17 @@
       updateWildcardButton();
       updateChallengeOptions();
     }
+
+    // ========== Copy Textarea ==========
+    function copyTextarea(id, btn) {
+      var text = document.getElementById(id).value;
+      navigator.clipboard.writeText(text).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = t('copied');
+        setTimeout(function() { btn.textContent = orig; }, 2000);
+      });
+    }
+    window.copyTextarea = copyTextarea;
 
     // Expose functions used in onclick attributes to global scope
     window.toggleWildcard = toggleWildcard;
