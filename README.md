@@ -172,7 +172,7 @@ Company No. 15194067 | ICO Reference: ZB74870
 
 ## Test the generator
 
-[MIT][(https://ssl-gratis.zebrabyte.ro/))
+[Test][(https://ssl-gratis.zebrabyte.ro/))
 
 
 ## License
