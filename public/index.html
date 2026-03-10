@@ -196,7 +196,61 @@
       margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .footer { text-align: center; margin-top: 24px; font-size: 13px; color: #888; }
+    .footer { text-align: center; margin-top: 24px; font-size: 12px; color: #aaa; border-top: 1px solid #eee; padding-top: 16px; }
+    .radio-inline-groups { display: flex; gap: 40px; flex-wrap: wrap; margin-bottom: 20px; }
+    .radio-inline-groups .form-group { margin-bottom: 0; }
+
+    /* ===== MOBILE RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      body { padding: 0; background: #fff; }
+      .container {
+        padding: 20px 16px;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      h1 { font-size: 22px; }
+      .top-bar { align-items: flex-start; }
+      .logo-wrap img { height: 26px; }
+      .lang-select { font-size: 13px; padding: 5px 8px; }
+      .domain-input-row { flex-direction: column; gap: 8px; }
+      .btn-wildcard { width: 100%; }
+      .radio-inline-groups {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .btn { font-size: 15px; padding: 12px 20px; }
+      .btn-sm { width: 100%; text-align: center; }
+      .download-btns { flex-direction: column; }
+      .copy-field { flex-direction: column; }
+      .copy-btn { width: 100%; }
+      .challenge-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .footer { font-size: 11px; line-height: 1.8; }
+      .tutorial-bar { font-size: 13px; }
+      .tos-box { font-size: 12px; }
+    }
+    .logo-wrap img { height: 44px; display: block; }
+    .tutorial-bar {
+      background: #f0f7ff;
+      border: 1px solid #cce0ff;
+      border-radius: 4px;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #2c5282;
+    }
+    .tutorial-bar a { color: #1a56db; font-weight: 600; }
+    .tos-box {
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #555;
+    }
+    .tos-box label { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+    .tos-box input[type=checkbox] { margin-top: 3px; flex-shrink: 0; width: 15px; height: 15px; cursor: pointer; }
+    .tos-box a { color: #c0392b; }
     .step-list { padding-left: 20px; }
     .step-list li { margin-bottom: 8px; font-size: 14px; }
     .download-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
@@ -232,18 +286,25 @@
 <body>
   <div class="container">
     <div class="top-bar">
-      <h1 data-i18n="title">Free SSL Certificate Generator</h1>
+      <div class="logo-wrap">
+        <img src="https://static-media.zebrabyte.ro/Zebrabyte-Logo-black.png" alt="Zebrabyte">
+      </div>
       <select class="lang-select" id="lang-select" onchange="setLanguage(this.value)">
         <option value="en">🇬🇧 English</option>
         <option value="ro">🇷🇴 Română</option>
       </select>
     </div>
+    <h1 data-i18n="title">Free SSL Certificate Generator</h1>
     <p class="desc" data-i18n="desc1">
       Create a Free SSL Certificate in a few minutes (including Wildcard SSL).
     </p>
     <p class="desc" data-i18n-html="desc2">
       Supported CAs: <strong>Let's Encrypt</strong> (90 days), <strong>ZeroSSL</strong> (90 days).
     </p>
+
+    <div class="tutorial-bar">
+      📖 For a step-by-step tutorial with video — <a href="#" target="_blank">Check the tutorial</a>
+    </div>
 
     <div id="error-msg" class="error hidden"></div>
     <div id="success-msg" class="success hidden"></div>
@@ -264,19 +325,21 @@
           <label for="email" data-i18n="emailLabel">Enter Email*</label>
           <input type="email" id="email" name="email" placeholder="youremail@gmail.com" required>
         </div>
-        <div class="form-group">
-          <label data-i18n="caLabel">Certificate Authority</label>
-          <div class="radio-group">
-            <label><input type="radio" name="ca" value="letsencrypt" checked> Let's Encrypt</label>
-            <label><input type="radio" name="ca" value="zerossl"> ZeroSSL</label>
+        <div class="radio-inline-groups">
+          <div class="form-group">
+            <label data-i18n="caLabel">Certificate Authority</label>
+            <div class="radio-group">
+              <label><input type="radio" name="ca" value="letsencrypt" checked> Let's Encrypt</label>
+              <label><input type="radio" name="ca" value="zerossl"> ZeroSSL</label>
+            </div>
+            <small id="zerossl-note" class="hidden" data-i18n="zerosslNote">ZeroSSL is part of sectigo </small>
           </div>
-          <small id="zerossl-note" class="hidden" data-i18n="zerosslNote">ZeroSSL is part of sectigo </small>
-        </div>
-        <div class="form-group">
-          <label data-i18n="verificationLabel">Verification Method</label>
-          <div class="radio-group">
-            <label id="http-label"><input type="radio" name="challengeType" value="http-01" checked> HTTP</label>
-            <label><input type="radio" name="challengeType" value="dns-01"> DNS</label>
+          <div class="form-group">
+            <label data-i18n="verificationLabel">Verification Method</label>
+            <div class="radio-group">
+              <label id="http-label"><input type="radio" name="challengeType" value="http-01" checked> HTTP</label>
+              <label><input type="radio" name="challengeType" value="dns-01"> DNS</label>
+            </div>
           </div>
         </div>
 
@@ -301,6 +364,13 @@
               <input type="number" id="renew-days" name="notifyDaysBefore" value="30" min="1" max="60">
             </div>
           </div>
+        </div>
+
+        <div class="tos-box">
+          <label>
+            <input type="checkbox" id="tos-accept" required>
+            <span>I agree to the <a href="https://www.zebrabyte.ro/legal" target="_blank" rel="noopener">Zebrabyte Terms &amp; Conditions</a> and the <a href="https://letsencrypt.org/documents/LE-SA-v1.3-September-21-2022.pdf" target="_blank" rel="noopener">Let's Encrypt Subscriber Agreement</a>.</span>
+          </label>
         </div>
 
         <div style="margin-top: 20px;">
@@ -339,7 +409,7 @@
     </div>
 
     <div class="footer">
-      <p data-i18n="footer">This tool uses the ACME protocol to generate SSL certificates.</p>
+      <p>© 2015 - 2025 ZEBRABYTE LIMITED. All Rights Reserved. | Company No. 15194067 | ICO Reference: ZB74870</p>
     </div>
   </div>
 
@@ -658,6 +728,11 @@
     orderForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       hideMessages();
+
+      if (!document.getElementById('tos-accept').checked) {
+        showError('Please accept the Terms & Conditions to continue.');
+        return;
+      }
 
       var formData = new FormData(orderForm);
       var data = {
