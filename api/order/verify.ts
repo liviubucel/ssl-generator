@@ -1,32 +1,26 @@
-export const config = {
-  maxDuration: 60,
-};
-
 import { handleVerifyOrder } from '../../src/acme';
 
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout>;
-  return new Promise<T>((resolve, reject) => {
-    timer = setTimeout(() => reject(new Error(message)), timeoutMs);
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (error) => {
-        clearTimeout(timer);
-        reject(error);
-      }
-    );
-  });
-}
-
 function json(res: any, status: number, body: Record<string, unknown>) {
-  res.status(status).setHeader('Content-Type', 'application/json');
+  res.status(status);
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.json(body);
+  res.end(JSON.stringify(body));
+}
+
+function parseBody(req: any): Record<string, any> {
+  const body = req?.body;
+  if (!body) return {};
+  if (typeof body === 'string') {
+    try {
+      return JSON.parse(body);
+    } catch {
+      return {};
+    }
+  }
+  if (typeof body === 'object') return body;
+  return {};
 }
 
 export default async function handler(req: any, res: any) {
@@ -53,7 +47,7 @@ export default async function handler(req: any, res: any) {
       authorizations,
       ca,
       challengeType,
-    } = req.body ?? {};
+    } = parseBody(req);
 
     if (
       !accountKeyPair ||
@@ -68,7 +62,7 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    const result = await withTimeout(handleVerifyOrder({
+    const result = await handleVerifyOrder({
       accountKeyPair,
       accountUrl,
       orderUrl,
@@ -76,7 +70,7 @@ export default async function handler(req: any, res: any) {
       authorizations,
       ca,
       challengeType,
-    }), 25000, 'Verification timed out in serverless runtime. Click Verify again in a few seconds.');
+    });
 
     json(res, 200, result as unknown as Record<string, unknown>);
   } catch (error: any) {

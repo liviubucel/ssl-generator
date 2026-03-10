@@ -627,15 +627,23 @@
     async function parseApiResponse(resp) {
       var raw = await resp.text();
       var contentType = resp.headers.get('content-type') || '';
+      var cleaned = raw.replace(/^\uFEFF/, '').trim();
 
       if (contentType.includes('application/json')) {
-        return JSON.parse(raw || '{}');
+        try {
+          return JSON.parse(cleaned || '{}');
+        } catch {
+          throw new Error(
+            'API returned invalid JSON (HTTP ' + resp.status + '). ' +
+            'Content-Type: ' + contentType + '. Response: ' + cleaned.slice(0, 300)
+          );
+        }
       }
 
       try {
-        return JSON.parse(raw);
+        return JSON.parse(cleaned);
       } catch {
-        throw new Error('API returned non-JSON response (HTTP ' + resp.status + '). Check Vercel function logs. Response: ' + raw.slice(0, 300));
+        throw new Error('API returned non-JSON response (HTTP ' + resp.status + '). Content-Type: ' + contentType + '. Response: ' + cleaned.slice(0, 300));
       }
     }
 
@@ -687,12 +695,17 @@
         renderChallenges(result.authorizations, formData.get('challengeType'));
         orderFormSection.classList.add('hidden');
         challengesSection.classList.remove('hidden');
-        showInfo(t('setupInfo'));
+
+        var isAutoFallback = data.ca === 'letsencrypt' && result.ca === 'zerossl';
+        if (isAutoFallback) {
+          showInfo((currentLang === 'ro'
+            ? 'Let\'s Encrypt este temporar indisponibil (HTTP 525). Fluxul a continuat automat cu ZeroSSL. '
+            : 'Let\'s Encrypt is temporarily unavailable (HTTP 525). The flow continued automatically with ZeroSSL. ') + t('setupInfo'));
+        } else {
+          showInfo(t('setupInfo'));
+        }
       } catch (err) {
         var msg = err.message;
-        if (msg.includes('Failed to fetch ACME directory')) {
-          msg += t('caUnavailable');
-        }
         showError(msg);
       } finally {
         createBtn.disabled = false;

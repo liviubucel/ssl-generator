@@ -1,32 +1,26 @@
-export const config = {
-  maxDuration: 60,
-};
-
 import { handleCreateOrder } from '../src/acme';
 
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout>;
-  return new Promise<T>((resolve, reject) => {
-    timer = setTimeout(() => reject(new Error(message)), timeoutMs);
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (error) => {
-        clearTimeout(timer);
-        reject(error);
-      }
-    );
-  });
-}
-
 function json(res: any, status: number, body: Record<string, unknown>) {
-  res.status(status).setHeader('Content-Type', 'application/json');
+  res.status(status);
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.json(body);
+  res.end(JSON.stringify(body));
+}
+
+function parseBody(req: any): Record<string, any> {
+  const body = req?.body;
+  if (!body) return {};
+  if (typeof body === 'string') {
+    try {
+      return JSON.parse(body);
+    } catch {
+      return {};
+    }
+  }
+  if (typeof body === 'object') return body;
+  return {};
 }
 
 export default async function handler(req: any, res: any) {
@@ -45,20 +39,20 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { domains, email, ca } = req.body ?? {};
+    const { domains, email, ca } = parseBody(req);
 
     if (!domains || !email || !ca) {
       json(res, 400, { error: 'Missing required fields: domains, email, ca' });
       return;
     }
 
-    const result = await withTimeout(handleCreateOrder({
+    const result = await handleCreateOrder({
       domains,
       email,
       ca,
       eabKid: process.env.EAB_KID,
       eabHmacKey: process.env.EAB_HMAC_KEY,
-    }), 9000, 'Order creation timed out in serverless runtime. Please retry or switch CA.');
+    });
 
     json(res, 200, result as unknown as Record<string, unknown>);
   } catch (error: any) {

@@ -6,13 +6,17 @@ import {
   arrayBufferToBase64,
 } from './asn1';
 
-// ACME Directory URLs
-const ACME_DIRECTORIES: Record<string, string> = {
-  letsencrypt: 'https://acme-v02.api.letsencrypt.org/directory',
-  zerossl: 'https://acme.zerossl.com/v2/DV90',
+// ACME directory URLs in priority order.
+const ACME_DIRECTORIES: Record<string, string[]> = {
+  letsencrypt: [
+    'https://acme-v02.api.letsencrypt.org/directory',
+    // Same endpoint with trailing slash can route differently on some edges.
+    'https://acme-v02.api.letsencrypt.org/directory/',
+  ],
+  zerossl: ['https://acme.zerossl.com/v2/DV90'],
 };
 
-const USER_AGENT = 'ssl-generator/1.0';
+const REQUEST_TIMEOUT_MS = 15000;
 
 interface AcmeDirectory {
   newNonce: string;
@@ -65,63 +69,71 @@ export interface VerifyResult {
 
 // Fetch ACME directory (with retry for transient connectivity issues)
 async function getDirectory(ca: string): Promise<AcmeDirectory> {
-  const directoryUrl = ACME_DIRECTORIES[ca];
-  if (!directoryUrl) throw new Error(`Unknown CA: ${ca}`);
+  const directoryUrls = ACME_DIRECTORIES[ca];
+  if (!directoryUrls || directoryUrls.length === 0) {
+    throw new Error(`Unknown CA: ${ca}`);
+  }
 
-  const isVercel = !!(globalThis as any).process?.env?.VERCEL;
-  const maxAttempts = isVercel ? 2 : 5;
+  const maxAttempts = 6;
   let lastError: Error | null = null;
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const resp = await fetch(directoryUrl, {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': USER_AGENT,
-          'cf-no-cache': '1',
-        },
-        // keepalive and redirect are valid fetch options but missing from
-        // @cloudflare/workers-types RequestInitCfProperties, so we cast here
-        keepalive: false,
-        redirect: 'follow',
-      } as RequestInit);
-      if (!resp.ok) {
-        let detail = '';
-        try {
-          const contentType = resp.headers.get('content-type') || '';
-          if (contentType.includes('text') || contentType.includes('json')) {
-            detail = await resp.text();
-          }
-        } catch { /* ignore */ }
-        const is525 = resp.status === 525;
-        const errorMsg = is525
-          ? `Failed to fetch ACME directory from ${ca}: HTTP 525 (SSL Handshake Failed). This is a temporary Cloudflare↔Let's Encrypt connectivity issue. Please try again or switch to ZeroSSL.`
-          : `Failed to fetch ACME directory from ${ca}: HTTP ${resp.status}${detail ? ' - ' + detail : ''}. The certificate authority may be temporarily unavailable. Please try again later or select a different CA.`;
-        throw new Error(errorMsg);
-      }
-      const data = (await resp.json()) as Record<string, string>;
+  for (const directoryUrl of directoryUrls) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-      return {
-        newNonce: data.newNonce,
-        newAccount: data.newAccount,
-        newOrder: data.newOrder,
-      };
-    } catch (err: any) {
-      lastError = err;
-      if (attempt < maxAttempts) {
-        await new Promise((resolve) => setTimeout(resolve, isVercel ? 500 : 2000));
+      try {
+        const resp = await fetch(directoryUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache',
+          },
+          redirect: 'follow',
+          signal: controller.signal,
+        });
+
+        if (!resp.ok) {
+          let detail = '';
+          try {
+            const contentType = resp.headers.get('content-type') || '';
+            if (contentType.includes('text') || contentType.includes('json')) {
+              detail = await resp.text();
+            }
+          } catch {
+            // Ignore body parsing failures, we still have status code.
+          }
+
+          const is525 = resp.status === 525;
+          const errorMsg = is525
+            ? `Failed to fetch ACME directory from ${ca}: HTTP 525 (SSL Handshake Failed). This is a temporary Cloudflare<->Let's Encrypt connectivity issue. Please try again or switch to ZeroSSL.`
+            : `Failed to fetch ACME directory from ${ca}: HTTP ${resp.status}${detail ? ' - ' + detail : ''}. The certificate authority may be temporarily unavailable. Please try again later or select a different CA.`;
+          throw new Error(errorMsg);
+        }
+
+        const data = (await resp.json()) as Record<string, string>;
+        return {
+          newNonce: data.newNonce,
+          newAccount: data.newAccount,
+          newOrder: data.newOrder,
+        };
+      } catch (err: any) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        if (attempt < maxAttempts) {
+          const delayMs = Math.min(1500 * 2 ** (attempt - 1), 10000);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
   }
 
-  throw lastError!
+  throw lastError!;
 }
-
 // Get a fresh nonce
 async function getNonce(nonceUrl: string): Promise<string> {
   const resp = await fetch(nonceUrl, {
     method: 'HEAD',
-    headers: { 'User-Agent': USER_AGENT },
   });
   const nonce = resp.headers.get('Replay-Nonce');
   if (!nonce) throw new Error('Failed to get nonce');
@@ -254,7 +266,6 @@ async function acmeRequest(
     method: 'POST',
     headers: {
       'Content-Type': 'application/jose+json',
-      'User-Agent': USER_AGENT,
     },
     body: body,
   });
@@ -483,6 +494,14 @@ async function pollStatus(
   throw new Error('Polling timed out');
 }
 
+function isLetsEncryptDirectory525(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes('Failed to fetch ACME directory from letsencrypt') &&
+    message.includes('HTTP 525')
+  );
+}
+
 // Main: Create ACME Order
 export async function handleCreateOrder(body: {
   domains: string;
@@ -506,8 +525,25 @@ export async function handleCreateOrder(body: {
     throw new Error('ZeroSSL requires EAB credentials (KID and HMAC Key)');
   }
 
-  // Get directory
-  const directory = await getDirectory(ca);
+  let effectiveCa = ca;
+
+  // Get directory with fallback from Let's Encrypt to ZeroSSL on transient 525.
+  let directory: AcmeDirectory;
+  try {
+    directory = await getDirectory(effectiveCa);
+  } catch (error) {
+    if (ca === 'letsencrypt' && isLetsEncryptDirectory525(error)) {
+      if (!eabKid || !eabHmacKey) {
+        throw new Error(
+          "Let's Encrypt is temporarily unreachable (HTTP 525). Automatic fallback to ZeroSSL requires EAB credentials (EAB_KID and EAB_HMAC_KEY)."
+        );
+      }
+      effectiveCa = 'zerossl';
+      directory = await getDirectory(effectiveCa);
+    } else {
+      throw error;
+    }
+  }
 
   // Get nonce
   let nonce = await getNonce(directory.newNonce);
@@ -517,6 +553,9 @@ export async function handleCreateOrder(body: {
   const publicJWK = await getPublicJWK(keyPair.publicKey);
   const thumbprint = await jwkThumbprint(publicJWK);
 
+  const effectiveEabKid = effectiveCa === 'zerossl' ? eabKid : undefined;
+  const effectiveEabHmacKey = effectiveCa === 'zerossl' ? eabHmacKey : undefined;
+
   // Create account
   const accountResult = await createAccount(
     directory,
@@ -524,8 +563,8 @@ export async function handleCreateOrder(body: {
     publicJWK,
     nonce,
     email,
-    eabKid,
-    eabHmacKey
+    effectiveEabKid,
+    effectiveEabHmacKey
   );
   nonce = accountResult.nonce;
 
@@ -562,7 +601,7 @@ export async function handleCreateOrder(body: {
     orderUrl: orderResult.orderUrl,
     finalizeUrl: orderResult.finalizeUrl,
     authorizations,
-    ca,
+    ca: effectiveCa,
   };
 }
 
@@ -623,8 +662,8 @@ export async function handleVerifyOrder(body: {
       accountUrl,
       nonce,
       ['ready', 'valid'],
-      3,
-      1500
+      20,
+      3000
     );
     orderData = pollResult.data;
     nonce = pollResult.nonce;
@@ -692,8 +731,8 @@ export async function handleVerifyOrder(body: {
       accountUrl,
       nonce,
       ['valid'],
-      3,
-      1500
+      20,
+      3000
     );
     certData = certPollResult.data;
     nonce = certPollResult.nonce;
