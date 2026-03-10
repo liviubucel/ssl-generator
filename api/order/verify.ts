@@ -4,6 +4,23 @@ export const config = {
 
 import { handleVerifyOrder } from '../../src/acme';
 
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  return new Promise<T>((resolve, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
+
 function json(res: any, status: number, body: Record<string, unknown>) {
   res.status(status).setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -51,7 +68,7 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    const result = await handleVerifyOrder({
+    const result = await withTimeout(handleVerifyOrder({
       accountKeyPair,
       accountUrl,
       orderUrl,
@@ -59,7 +76,7 @@ export default async function handler(req: any, res: any) {
       authorizations,
       ca,
       challengeType,
-    });
+    }), 25000, 'Verification timed out in serverless runtime. Click Verify again in a few seconds.');
 
     json(res, 200, result as unknown as Record<string, unknown>);
   } catch (error: any) {

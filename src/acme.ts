@@ -68,7 +68,8 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
   const directoryUrl = ACME_DIRECTORIES[ca];
   if (!directoryUrl) throw new Error(`Unknown CA: ${ca}`);
 
-  const maxAttempts = 5;
+  const isVercel = !!(globalThis as any).process?.env?.VERCEL;
+  const maxAttempts = isVercel ? 2 : 5;
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -108,7 +109,7 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
     } catch (err: any) {
       lastError = err;
       if (attempt < maxAttempts) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, isVercel ? 500 : 2000));
       }
     }
   }
@@ -622,8 +623,8 @@ export async function handleVerifyOrder(body: {
       accountUrl,
       nonce,
       ['ready', 'valid'],
-      20,
-      3000
+      3,
+      1500
     );
     orderData = pollResult.data;
     nonce = pollResult.nonce;
@@ -691,8 +692,8 @@ export async function handleVerifyOrder(body: {
       accountUrl,
       nonce,
       ['valid'],
-      20,
-      3000
+      3,
+      1500
     );
     certData = certPollResult.data;
     nonce = certPollResult.nonce;
