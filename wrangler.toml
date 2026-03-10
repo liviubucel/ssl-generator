@@ -7,15 +7,13 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./public"
 
 # KV namespace for storing certificate data and auto-renewal schedules
-# Create with: wrangler kv namespace create SSL_STORE
-# Then replace the id below with the actual namespace ID
-# [[kv_namespaces]]
-# binding = "SSL_STORE"
-# id = "YOUR_KV_NAMESPACE_ID"
+[[kv_namespaces]]
+binding = "SSL_STORE"
+id = "1a1fe7a4e0554c90bd83a73517ce39bd"
 
 # Cron trigger for auto-renewal (runs daily at 2:00 AM UTC)
-# [triggers]
-# crons = ["0 2 * * *"]
+[triggers]
+crons = ["0 2 * * *"]
 
 # Secrets (set via Cloudflare dashboard > Workers > Settings > Variables and Secrets):
 # EAB_KID          - ZeroSSL EAB Key ID
@@ -23,3 +21,4 @@ directory = "./public"
 # CF_API_TOKEN     - Cloudflare API token (Zone:DNS:Edit) for auto-renewal DNS management
 # ACME_ENGINE_URL  - Railway backend URL (e.g. https://ssl-acme-engine-production.up.railway.app)
 #                    When set, ACME requests are proxied through Railway to avoid HTTP 525 errors.
+# ENGINE_TOKEN     - Shared secret between Worker and Railway ACME engine.
