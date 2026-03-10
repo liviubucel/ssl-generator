@@ -647,6 +647,13 @@
       }
     }
 
+    function normalizeErrorMessage(err) {
+      var msg = (err && err.message) ? err.message : String(err || 'Unknown error');
+      if (msg.includes('JSON.parse: unexpected character') || msg.includes('Unexpected token')) {
+        return 'API returned an invalid response format. Check Vercel Function logs for /api/order and /api/order/verify.';
+      }
+      return msg;
+    }
     // ========== Create Order ==========
     orderForm.addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -705,7 +712,7 @@
           showInfo(t('setupInfo'));
         }
       } catch (err) {
-        var msg = err.message;
+        var msg = normalizeErrorMessage(err);
         showError(msg);
       } finally {
         createBtn.disabled = false;
@@ -854,7 +861,7 @@
           showError(result.error || t('verifyFailed'));
         }
       } catch (err) {
-        showError(err.message);
+        showError(normalizeErrorMessage(err));
       } finally {
         verifyBtn.disabled = false;
         verifyBtn.textContent = t('verifyBtn');

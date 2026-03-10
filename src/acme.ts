@@ -16,7 +16,20 @@ const ACME_DIRECTORIES: Record<string, string[]> = {
   zerossl: ['https://acme.zerossl.com/v2/DV90'],
 };
 
-const REQUEST_TIMEOUT_MS = 15000;
+const REQUEST_TIMEOUT_MS = 12000;
+const FAST_LE_TIMEOUT_MS = 2500;
+
+function previewText(input: string, max = 180): string {
+  return input.replace(/\s+/g, ' ').trim().slice(0, max);
+}
+
+function parseJsonSafe(raw: string): Record<string, any> | null {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
 
 interface AcmeDirectory {
   newNonce: string;
@@ -74,13 +87,15 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
     throw new Error(`Unknown CA: ${ca}`);
   }
 
-  const maxAttempts = 6;
+  // Keep LE fallback snappy; allow more retries for other CAs.
+  const maxAttempts = ca === 'letsencrypt' ? 1 : 4;
+  const timeoutMs = ca === 'letsencrypt' ? FAST_LE_TIMEOUT_MS : REQUEST_TIMEOUT_MS;
   let lastError: Error | null = null;
 
   for (const directoryUrl of directoryUrls) {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       try {
         const resp = await fetch(directoryUrl, {
@@ -110,7 +125,18 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
           throw new Error(errorMsg);
         }
 
-        const data = (await resp.json()) as Record<string, string>;
+        const raw = await resp.text();
+        const data = parseJsonSafe(raw);
+        if (!data) {
+          throw new Error(
+            'Failed to parse ACME directory JSON from ' + ca + '. Response preview: ' + previewText(raw)
+          );
+        }
+        if (!data.newNonce || !data.newAccount || !data.newOrder) {
+          throw new Error(
+            'Invalid ACME directory payload from ' + ca + '. Response preview: ' + previewText(raw)
+          );
+        }
         return {
           newNonce: data.newNonce,
           newAccount: data.newAccount,
@@ -119,7 +145,10 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
       } catch (err: any) {
         lastError = err instanceof Error ? err : new Error(String(err));
         if (attempt < maxAttempts) {
-          const delayMs = Math.min(1500 * 2 ** (attempt - 1), 10000);
+          const delayMs =
+            ca === 'letsencrypt'
+              ? 600
+              : Math.min(1200 * 2 ** (attempt - 1), 8000);
           await new Promise((resolve) => setTimeout(resolve, delayMs));
         }
       } finally {
@@ -275,7 +304,13 @@ async function acmeRequest(
 
   let data;
   if (contentType.includes('application/json') || contentType.includes('application/problem+json')) {
-    data = await resp.json();
+    const raw = await resp.text();
+    data = parseJsonSafe(raw);
+    if (!data) {
+      throw new Error(
+        'ACME returned invalid JSON from ' + url + '. Response preview: ' + previewText(raw)
+      );
+    }
   } else if (contentType.includes('application/pem-certificate-chain')) {
     data = await resp.text();
   } else {
