@@ -2,7 +2,7 @@
 
 **Built by [Liviu Bucel](https://liviubucel.com) for [Zebrabyte Limited](https://zebrabyte.ro)**
 
-A free, open-source SSL certificate generator powered by the ACME protocol, deployed on Cloudflare Workers with a Railway backend proxy. Supports multiple Certificate Authorities and wildcard certificates.
+A free, SSL certificate generator powered by the ACME protocol, deployed on Cloudflare Workers with a Railway backend proxy. Supports multiple Certificate Authorities and wildcard certificates.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
