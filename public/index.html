@@ -606,17 +606,25 @@
     function toggleWildcard() {
       var val = domainsInput.value.trim();
       if (hasWildcard()) {
-        // Remove wildcard prefix from all domains
+        // Remove wildcard — keep only base domains (strip *. prefix)
         domainsInput.value = val.split(',').map(function(d) {
           d = d.trim();
           return d.startsWith('*.') ? d.slice(2) : d;
+        }).filter(function(d, i, arr) {
+          return arr.indexOf(d) === i; // deduplicate
         }).join(', ');
       } else {
-        // Add wildcard for the first domain
-        if (val && !hasWildcard()) {
-          var baseDomain = val.split(',')[0].trim();
-          domainsInput.value = val + ', *.' + baseDomain;
-        } else if (!val) {
+        if (val) {
+          // Replace each base domain with its wildcard version, remove duplicates
+          var domains = val.split(',').map(function(d) { return d.trim(); });
+          var wildcards = domains.map(function(d) {
+            return d.startsWith('*.') ? d : '*.' + d;
+          });
+          // Keep only wildcard versions (no duplicates)
+          domainsInput.value = wildcards.filter(function(d, i, arr) {
+            return arr.indexOf(d) === i;
+          }).join(', ');
+        } else {
           domainsInput.value = '*.';
           domainsInput.focus();
         }
