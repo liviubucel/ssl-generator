@@ -1,7 +1,7 @@
 # 🔐 Free SSL Certificate Generator
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/f1f4db59-5603-42cc-930a-65a930d66f2f" alt="Zebrabyte SSL Generator" width="500">
+  <img src="https://github.com/user-attachments/assets/f1f4db59-5603-42cc-930a-65a930d66f2f" alt="Zebrabyte SSL Generator" width="300">
 </p>
 
 <p align="center">
