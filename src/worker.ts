@@ -1,4 +1,4 @@
-import { handleCreateOrder, handleVerifyOrder } from './acme';
+import { handleCreateOrder, handleVerifyOrder, configureAcmeEngine } from './acme';
 import {
   handleScheduledRenewal,
   saveRenewalConfig,
@@ -12,11 +12,18 @@ export interface Env {
   EAB_KID?: string;
   EAB_HMAC_KEY?: string;
   CF_API_TOKEN?: string;
+  // Railway ACME engine URL — when set, all ACME calls are proxied through it
+  // to avoid Cloudflare-edge → Let's Encrypt TLS handshake failures (HTTP 525).
+  // Set via: wrangler secret put ACME_ENGINE_URL
+  ACME_ENGINE_URL?: string;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    // Configure ACME engine proxy for this request (Railway relay to avoid CF→LE 525 errors)
+    configureAcmeEngine(env.ACME_ENGINE_URL);
 
     // Handle API routes
     if (url.pathname.startsWith('/api/')) {

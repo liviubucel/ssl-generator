@@ -19,6 +19,44 @@ const ACME_DIRECTORIES: Record<string, string[]> = {
 const REQUEST_TIMEOUT_MS = 12000;
 const FAST_LE_TIMEOUT_MS = 2500;
 
+// Optional Railway proxy URL — set via configureAcmeEngine() at request start.
+// When set, all ACME HTTP calls are relayed through the Railway backend so that
+// Cloudflare-edge → Let's Encrypt TLS handshake issues (HTTP 525) are avoided.
+let _acmeEngineUrl: string | undefined;
+
+export function configureAcmeEngine(url: string | undefined): void {
+  _acmeEngineUrl = url;
+}
+
+/**
+ * Thin fetch wrapper: when a Railway relay URL is configured, all ACME
+ * requests are forwarded to POST /api/acme-proxy on the Railway backend
+ * instead of hitting the ACME CA directly from the Cloudflare edge.
+ */
+async function acmeFetch(url: string, init?: RequestInit): Promise<Response> {
+  if (!_acmeEngineUrl) {
+    return fetch(url, init);
+  }
+
+  const method = (init?.method ?? 'GET').toUpperCase();
+  let rawHeaders: Record<string, string> = {};
+  if (init?.headers) {
+    if (init.headers instanceof Headers) {
+      init.headers.forEach((v, k) => { rawHeaders[k] = v; });
+    } else {
+      rawHeaders = init.headers as Record<string, string>;
+    }
+  }
+
+  const body = init?.body != null ? String(init.body) : undefined;
+
+  return fetch(`${_acmeEngineUrl}/api/acme-proxy`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, method, headers: rawHeaders, body }),
+  });
+}
+
 function previewText(input: string, max = 180): string {
   return input.replace(/\s+/g, ' ').trim().slice(0, max);
 }
@@ -98,7 +136,7 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       try {
-        const resp = await fetch(directoryUrl, {
+        const resp = await acmeFetch(directoryUrl, {
           headers: {
             'Accept': 'application/json',
             'Cache-Control': 'no-cache',
@@ -161,7 +199,7 @@ async function getDirectory(ca: string): Promise<AcmeDirectory> {
 }
 // Get a fresh nonce
 async function getNonce(nonceUrl: string): Promise<string> {
-  const resp = await fetch(nonceUrl, {
+  const resp = await acmeFetch(nonceUrl, {
     method: 'HEAD',
   });
   const nonce = resp.headers.get('Replay-Nonce');
@@ -291,7 +329,7 @@ async function acmeRequest(
 
   const body = await signJWS(payload, protectedHeader, privateKey);
 
-  const resp = await fetch(url, {
+  const resp = await acmeFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/jose+json',

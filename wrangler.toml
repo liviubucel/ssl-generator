@@ -18,6 +18,8 @@ directory = "./public"
 # crons = ["0 2 * * *"]
 
 # Secrets (set via Cloudflare dashboard > Workers > Settings > Variables and Secrets):
-# EAB_KID        - ZeroSSL EAB Key ID
-# EAB_HMAC_KEY   - ZeroSSL EAB HMAC Key
-# CF_API_TOKEN   - Cloudflare API token (Zone:DNS:Edit) for auto-renewal DNS management
+# EAB_KID          - ZeroSSL EAB Key ID
+# EAB_HMAC_KEY     - ZeroSSL EAB HMAC Key
+# CF_API_TOKEN     - Cloudflare API token (Zone:DNS:Edit) for auto-renewal DNS management
+# ACME_ENGINE_URL  - Railway backend URL (e.g. https://ssl-acme-engine-production.up.railway.app)
+#                    When set, ACME requests are proxied through Railway to avoid HTTP 525 errors.
