@@ -46,12 +46,23 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
+    let eabKid, eabHmacKey;
+    if (ca === 'zerossl') {
+      eabKid = process.env.EAB_KID;
+      eabHmacKey = process.env.EAB_HMAC_KEY;
+    } else if (ca === 'actalis-1y') {
+      eabKid = process.env.ACTALIS_1Y_EAB_KID;
+      eabHmacKey = process.env.ACTALIS_1Y_EAB_HMAC;
+    } else if (ca === 'actalis-90d') {
+      eabKid = process.env.ACTALIS_90D_EAB_KID;
+      eabHmacKey = process.env.ACTALIS_90D_EAB_HMAC;
+    }
     const result = await handleCreateOrder({
       domains,
       email,
       ca,
-      eabKid: process.env.EAB_KID,
-      eabHmacKey: process.env.EAB_HMAC_KEY,
+      eabKid,
+      eabHmacKey,
     });
 
     json(res, 200, result as unknown as Record<string, unknown>);
