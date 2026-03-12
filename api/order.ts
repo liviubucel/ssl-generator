@@ -1,4 +1,5 @@
 import { handleCreateOrder } from '../src/acme';
+import { sendErrorEmail } from './email';
 
 function json(res: any, status: number, body: Record<string, unknown>) {
   res.status(status);
@@ -57,6 +58,14 @@ export default async function handler(req: any, res: any) {
       eabKid = process.env.ACTALIS_90_ME_KID;
       eabHmacKey = process.env.ACTALIS_90_HMAC_KEY;
     }
+
+    // DEBUG: Log EAB values mascate
+    const mask = (val) => val ? val.slice(0, 4) + '...' + val.slice(-4) : undefined;
+    console.log('[EAB DEBUG]', {
+      ca,
+      eabKid: mask(eabKid),
+      eabHmacKey: mask(eabHmacKey),
+    });
     const result = await handleCreateOrder({
       domains,
       email,
@@ -67,6 +76,26 @@ export default async function handler(req: any, res: any) {
 
     json(res, 200, result as unknown as Record<string, unknown>);
   } catch (error: any) {
-    json(res, 500, { error: error?.message || 'Internal server error' });
+    // Maschează erorile tehnice pentru utilizatorii finali
+    let userMessage = 'Serviciul de generare SSL este momentan indisponibil (mentenanță sau suprasarcină). Vă rugăm să încercați din nou mai târziu.';
+    let shouldNotify = false;
+    if (typeof error?.message === 'string') {
+      if (/\b(502|503|504|403|404|500|acme|forbidden|unavailable|timeout|failed|error)\b/i.test(error.message)) {
+        shouldNotify = true;
+      } else {
+        userMessage = error.message;
+      }
+    }
+    if (shouldNotify) {
+      sendErrorEmail({
+        subject: `[SSL Generator] Eroare API: ${error?.message?.slice(0, 80)}`,
+        text: `Eroare API:\n${error?.stack || error?.message}\n\nRequest: ${JSON.stringify({
+          url: req.url,
+          body: req.body,
+          headers: req.headers,
+        }, null, 2)}`,
+      });
+    }
+    json(res, 500, { error: userMessage });
   }
 }
