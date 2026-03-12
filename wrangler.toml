@@ -19,6 +19,6 @@ crons = ["0 2 * * *"]
 # EAB_KID          - ZeroSSL EAB Key ID
 # EAB_HMAC_KEY     - ZeroSSL EAB HMAC Key
 # CF_API_TOKEN     - Cloudflare API token (Zone:DNS:Edit) for auto-renewal DNS management
-# ACME_ENGINE_URL  - Railway backend URL (e.g. https://ssl-acme-engine-production.up.railway.app)
+# ACME_ENGINE_URL  -  backend URL 
 #                    When set, ACME requests are proxied through Railway to avoid HTTP 525 errors.
 # ENGINE_TOKEN     - Shared secret between Worker and Railway ACME engine.
