@@ -20,11 +20,9 @@ const ACME_DIRECTORIES: Record<string, string[]> = {
   ],
   // ssl.com eliminat (doar cu plată)
   'actalis-90d': [
-    'https://acme.actalis.it/directory',
     'https://acme-api.actalis.com/acme/directory',
   ],
   'actalis-1y': [
-    'https://acme.actalis.it/directory',
     'https://acme-api.actalis.com/acme/directory',
   ],
 };
