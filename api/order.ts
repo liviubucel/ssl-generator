@@ -51,11 +51,11 @@ export default async function handler(req: any, res: any) {
       eabKid = process.env.EAB_KID;
       eabHmacKey = process.env.EAB_HMAC_KEY;
     } else if (ca === 'actalis-1y') {
-      eabKid = process.env.ACTALIS_1Y_EAB_KID;
-      eabHmacKey = process.env.ACTALIS_1Y_EAB_HMAC;
+      eabKid = process.env.ACTALIS_1_ME_KID;
+      eabHmacKey = process.env.ACTALIS_1_HMAC_KEY;
     } else if (ca === 'actalis-90d') {
-      eabKid = process.env.ACTALIS_90D_EAB_KID;
-      eabHmacKey = process.env.ACTALIS_90D_EAB_HMAC;
+      eabKid = process.env.ACTALIS_90_ME_KID;
+      eabHmacKey = process.env.ACTALIS_90_HMAC_KEY;
     }
     const result = await handleCreateOrder({
       domains,

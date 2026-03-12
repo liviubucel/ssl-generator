@@ -628,14 +628,14 @@ export async function handleCreateOrder(body: {
   let actalisEabKid = undefined;
   let actalisEabHmacKey = undefined;
   if (ca === 'actalis-90d') {
-    actalisEabKid = eabKid || (typeof process !== 'undefined' ? process.env.ACTALIS_90D_EAB_KID : (globalThis.ACTALIS_90D_EAB_KID || undefined));
-    actalisEabHmacKey = eabHmacKey || (typeof process !== 'undefined' ? process.env.ACTALIS_90D_EAB_HMAC : (globalThis.ACTALIS_90D_EAB_HMAC || undefined));
+    actalisEabKid = eabKid || (typeof process !== 'undefined' ? process.env.ACTALIS_90_ME_KID : (globalThis.ACTALIS_90_ME_KID || undefined));
+    actalisEabHmacKey = eabHmacKey || (typeof process !== 'undefined' ? process.env.ACTALIS_90_HMAC_KEY : (globalThis.ACTALIS_90_HMAC_KEY || undefined));
     if (!actalisEabKid || !actalisEabHmacKey) {
       throw new Error('Actalis 90d requires EAB credentials (KID and HMAC Key)');
     }
   } else if (ca === 'actalis-1y') {
-    actalisEabKid = eabKid || (typeof process !== 'undefined' ? process.env.ACTALIS_1Y_EAB_KID : (globalThis.ACTALIS_1Y_EAB_KID || undefined));
-    actalisEabHmacKey = eabHmacKey || (typeof process !== 'undefined' ? process.env.ACTALIS_1Y_EAB_HMAC : (globalThis.ACTALIS_1Y_EAB_HMAC || undefined));
+    actalisEabKid = eabKid || (typeof process !== 'undefined' ? process.env.ACTALIS_1_ME_KID : (globalThis.ACTALIS_1_ME_KID || undefined));
+    actalisEabHmacKey = eabHmacKey || (typeof process !== 'undefined' ? process.env.ACTALIS_1_HMAC_KEY : (globalThis.ACTALIS_1_HMAC_KEY || undefined));
     if (!actalisEabKid || !actalisEabHmacKey) {
       throw new Error('Actalis 1y requires EAB credentials (KID and HMAC Key)');
     }
