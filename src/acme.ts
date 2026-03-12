@@ -14,18 +14,15 @@ const ACME_DIRECTORIES: Record<string, string[]> = {
     'https://acme-v02.api.letsencrypt.org/directory/',
   ],
   zerossl: ['https://acme.zerossl.com/v2/DV90'],
-  buypass: [
-    'https://api.buypass.com/acme/directory',
-    'https://buypass.com/acme/directory',
-  ],
+  // buypass eliminat (nu mai e suportat)
   google: [
     'https://dv.acme-v02.api.pki.goog/directory',
   ],
-  sslcom: [
-    'https://acme.ssl.com/sslcom-dv-rsa',
-    'https://acme.ssl.com/sslcom-dv-ecc',
+  // ssl.com eliminat (doar cu plată)
+  'actalis-90d': [
+    'https://acme.actalis.it/directory',
   ],
-  actalis: [
+  'actalis-1y': [
     'https://acme.actalis.it/directory',
   ],
 };
@@ -50,21 +47,29 @@ export function configureAcmeEngine(url: string | undefined, token?: string): vo
  * instead of hitting the ACME CA directly from the Cloudflare edge.
  */
 async function acmeFetch(url: string, init?: RequestInit): Promise<Response> {
+  // Setează User-Agent explicit pentru Actalis (și orice alt CA dacă vrei)
+  let patchedInit = init ? { ...init } : {};
+  if (url.includes('acme.actalis.com') || url.includes('acme.actalis.it')) {
+    patchedInit.headers = {
+      ...(init?.headers || {}),
+      'User-Agent': 'acme-client',
+    };
+  }
   if (!_acmeEngineUrl) {
-    return fetch(url, init);
+    return fetch(url, patchedInit);
   }
 
-  const method = (init?.method ?? 'GET').toUpperCase();
+  const method = (patchedInit?.method ?? 'GET').toUpperCase();
   let rawHeaders: Record<string, string> = {};
-  if (init?.headers) {
-    if (init.headers instanceof Headers) {
-      init.headers.forEach((v, k) => { rawHeaders[k] = v; });
+  if (patchedInit?.headers) {
+    if (patchedInit.headers instanceof Headers) {
+      patchedInit.headers.forEach((v, k) => { rawHeaders[k] = v; });
     } else {
-      rawHeaders = init.headers as Record<string, string>;
+      rawHeaders = patchedInit.headers as Record<string, string>;
     }
   }
 
-  const body = init?.body != null ? String(init.body) : undefined;
+  const body = patchedInit?.body != null ? String(patchedInit.body) : undefined;
 
   const proxyHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
   if (_acmeEngineToken) {
@@ -619,6 +624,23 @@ export async function handleCreateOrder(body: {
     throw new Error('ZeroSSL requires EAB credentials (KID and HMAC Key)');
   }
 
+  // Actalis 90d/1y requires EAB
+  let actalisEabKid = undefined;
+  let actalisEabHmacKey = undefined;
+  if (ca === 'actalis-90d') {
+    actalisEabKid = typeof process !== 'undefined' ? process.env.ACTALIS_90D_EAB_KID : (globalThis.ACTALIS_90D_EAB_KID || undefined);
+    actalisEabHmacKey = typeof process !== 'undefined' ? process.env.ACTALIS_90D_EAB_HMAC : (globalThis.ACTALIS_90D_EAB_HMAC || undefined);
+    if (!actalisEabKid || !actalisEabHmacKey) {
+      throw new Error('Actalis 90d requires EAB credentials (KID and HMAC Key)');
+    }
+  } else if (ca === 'actalis-1y') {
+    actalisEabKid = typeof process !== 'undefined' ? process.env.ACTALIS_1Y_EAB_KID : (globalThis.ACTALIS_1Y_EAB_KID || undefined);
+    actalisEabHmacKey = typeof process !== 'undefined' ? process.env.ACTALIS_1Y_EAB_HMAC : (globalThis.ACTALIS_1Y_EAB_HMAC || undefined);
+    if (!actalisEabKid || !actalisEabHmacKey) {
+      throw new Error('Actalis 1y requires EAB credentials (KID and HMAC Key)');
+    }
+  }
+
   let effectiveCa = ca;
 
   // Get directory with fallback from Let's Encrypt to ZeroSSL on transient 525.
@@ -647,8 +669,18 @@ export async function handleCreateOrder(body: {
   const publicJWK = await getPublicJWK(keyPair.publicKey);
   const thumbprint = await jwkThumbprint(publicJWK);
 
-  const effectiveEabKid = effectiveCa === 'zerossl' ? eabKid : undefined;
-  const effectiveEabHmacKey = effectiveCa === 'zerossl' ? eabHmacKey : undefined;
+  let effectiveEabKid = undefined;
+  let effectiveEabHmacKey = undefined;
+  if (effectiveCa === 'zerossl') {
+    effectiveEabKid = eabKid;
+    effectiveEabHmacKey = eabHmacKey;
+  } else if (effectiveCa === 'actalis-90d') {
+    effectiveEabKid = actalisEabKid;
+    effectiveEabHmacKey = actalisEabHmacKey;
+  } else if (effectiveCa === 'actalis-1y') {
+    effectiveEabKid = actalisEabKid;
+    effectiveEabHmacKey = actalisEabHmacKey;
+  }
 
   // Create account
   const accountResult = await createAccount(

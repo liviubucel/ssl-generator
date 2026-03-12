@@ -299,7 +299,7 @@
       Create a Free SSL Certificate in a few minutes (including Wildcard SSL).
     </p>
     <p class="desc" data-i18n-html="desc2">
-      Supported CAs: <strong>Let's Encrypt</strong> (90 days), <strong>ZeroSSL</strong> (90 days), <strong>Buypass</strong> (180 days), <strong>Google Trust Services</strong> (90 days), <strong>ssl.com</strong> (90 days), <strong>Actalis</strong> (90 days).
+      Supported CAs: <strong>Let's Encrypt</strong> (90 days), <strong>ZeroSSL</strong> (90 days), <strong>Google Trust Services</strong> (90 days), <strong>Actalis</strong> (90 days).
     </p>
 
     <div class="tutorial-bar" data-i18n-html="tutorialBar">
@@ -330,16 +330,13 @@
           <div class="radio-group">
             <label><input type="radio" name="ca" value="letsencrypt" checked> Let's Encrypt</label>
             <label><input type="radio" name="ca" value="zerossl"> ZeroSSL</label>
-            <label><input type="radio" name="ca" value="buypass"> Buypass</label>
             <label><input type="radio" name="ca" value="google"> Google Trust Services</label>
-            <label><input type="radio" name="ca" value="sslcom"> ssl.com</label>
-            <label><input type="radio" name="ca" value="actalis"> Actalis</label>
+            <label><input type="radio" name="ca" value="actalis-90d"> Actalis (90 days)</label>
+            <label><input type="radio" name="ca" value="actalis-1y"> Actalis (1 year)</label>
           </div>
           <small id="zerossl-note" class="hidden" data-i18n="zerosslNote">ZeroSSL is part of Sectigo.</small>
-                    <small id="buypass-note" class="hidden" data-i18n="buypassNote">Buypass Go SSL. 180 days validity. No support by Zebrabyte.</small>
-                    <small id="google-note" class="hidden" data-i18n="googleNote">Google Trust Services. 90 days validity. No support by Zebrabyte.</small>
-                    <small id="sslcom-note" class="hidden" data-i18n="sslcomNote">ssl.com ACME. 90 days validity. No support by Zebrabyte.</small>
-          <small id="actalis-note" class="hidden" data-i18n="actalisNote">Actalis ACME. 90 days validity. No support by Zebrabyte.</small>
+          <small id="google-note" class="hidden" data-i18n="googleNote">Google Trust Services. 90 days validity. No support by Zebrabyte.</small>
+          <small id="actalis-note" class="hidden" data-i18n="actalisNote">Actalis ACME. 90 days or 1 year validity. No support by Zebrabyte.</small>
           <small id="le-note" data-i18n="leNote">Let's Encrypt is a free CA. No support is provided by Zebrabyte for this option.</small>
         </div>
         <div class="form-group">
@@ -435,11 +432,9 @@
       en: {
         title: 'Free SSL Certificate Generator',
         desc1: 'Create a Free SSL Certificate in a few minutes (including Wildcard SSL).',
-        desc2: 'Supported CAs: <strong>Let\'s Encrypt</strong> (90 days), <strong>ZeroSSL</strong> (90 days), <strong>Buypass</strong> (180 days), <strong>Google Trust Services</strong> (90 days), <strong>ssl.com</strong> (90 days), <strong>Actalis</strong> (90 days).',
-        actalisNote: 'Actalis ACME. 90 days validity. No support by Zebrabyte.',
-        buypassNote: 'Buypass Go SSL. 180 days validity. No support by Zebrabyte.',
+        desc2: 'Supported CAs: <strong>Let\'s Encrypt</strong> (90 days), <strong>ZeroSSL</strong> (90 days), <strong>Google Trust Services</strong> (90 days), <strong>Actalis</strong> (90 days or 1 year).',
+        actalisNote: 'Actalis ACME. 90 days or 1 year validity. No support by Zebrabyte.',
         googleNote: 'Google Trust Services. 90 days validity. No support by Zebrabyte.',
-        sslcomNote: 'ssl.com ACME. 90 days validity. No support by Zebrabyte.',
         domainLabel: 'Enter domain name(s)*',
         domainHint: 'Use *.yourdomain.com for wildcard certificates. Wildcards require DNS verification.',
         emailLabel: 'Enter Email*',
@@ -498,11 +493,9 @@
       ro: {
         title: 'Generator Gratuit de Certificate SSL',
         desc1: 'Creează un Certificat SSL Gratuit în câteva minute (inclusiv Wildcard SSL).',
-        desc2: 'CA-uri suportate: <strong>Let\'s Encrypt</strong> (90 zile), <strong>ZeroSSL</strong> (90 zile), <strong>Buypass</strong> (180 zile), <strong>Google Trust Services</strong> (90 zile), <strong>ssl.com</strong> (90 zile), <strong>Actalis</strong> (90 zile).',
-        actalisNote: 'Actalis ACME. Valabilitate 90 zile. Zebrabyte nu oferă suport.',
-        buypassNote: 'Buypass Go SSL. Valabilitate 180 zile. Zebrabyte nu oferă suport.',
+        desc2: 'CA-uri suportate: <strong>Let\'s Encrypt</strong> (90 zile), <strong>ZeroSSL</strong> (90 zile), <strong>Google Trust Services</strong> (90 zile), <strong>Actalis</strong> (90 zile sau 1 an).',
+        actalisNote: 'Actalis ACME. Valabilitate 90 zile sau 1 an. Zebrabyte nu oferă suport.',
         googleNote: 'Google Trust Services. Valabilitate 90 zile. Zebrabyte nu oferă suport.',
-        sslcomNote: 'ssl.com ACME. Valabilitate 90 zile. Zebrabyte nu oferă suport.',
         domainLabel: 'Introduceți numele domeniului(ilor)*',
         domainHint: 'Folosiți *.domeniultau.com pentru certificate wildcard. Wildcard-urile necesită verificare DNS.',
         emailLabel: 'Introduceți Email*',
