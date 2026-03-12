@@ -1,7 +1,7 @@
-#  Free SSL Certificate Generator
+# 🔐 Free SSL Certificate Generator
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/f1f4db59-5603-42cc-930a-65a930d66f2f" alt="Zebrabyte SSL Generator" width="300">
+  <img src="https://github.com/user-attachments/assets/f1f4db59-5603-42cc-930a-65a930d66f2f" alt="Zebrabyte SSL Generator" width="800">
 </p>
 
 <p align="center">
@@ -48,18 +48,18 @@ Cloudflare Worker (src/worker.ts)
 
 ## ✅ Features
 
--  Free SSL certificates via **Let's Encrypt** and **ZeroSSL**
--  **Wildcard certificates** (`*.example.com`) — DNS-01 only
--  HTTP-01 and DNS-01 challenge verification
--  Download certificate, private key, and CA bundle
--  **Auto-renewal** via Cloudflare Cron Triggers (daily at 2:00 AM UTC)
--  **Email notifications** on renewal (via Resend)
--  Railway proxy to fix Cloudflare-edge → Let's Encrypt TLS issues
--  `ENGINE_TOKEN` authentication between Worker and Railway
--  Bilingual UI (**English / Romanian**)
--  Mobile responsive design
--  Terms & Conditions acceptance (Zebrabyte + Let's Encrypt)
--  Zebrabyte branding (logo, footer)
+- ✅ Free SSL certificates via **Let's Encrypt** and **ZeroSSL**
+- ✅ **Wildcard certificates** (`*.example.com`) — DNS-01 only
+- ✅ HTTP-01 and DNS-01 challenge verification
+- ✅ Download certificate, private key, and CA bundle
+- ✅ **Auto-renewal** via Cloudflare Cron Triggers (daily at 2:00 AM UTC)
+- ✅ **Email notifications** on renewal (via Resend)
+- ✅ Railway proxy to fix Cloudflare-edge → Let's Encrypt TLS issues
+- ✅ `ENGINE_TOKEN` authentication between Worker and Railway
+- ✅ Bilingual UI (**English / Romanian**)
+- ✅ Mobile responsive design
+- ✅ Terms & Conditions acceptance (Zebrabyte + Let's Encrypt)
+- ✅ Zebrabyte branding (logo, footer)
 
 ---
 

@@ -14,6 +14,20 @@ const ACME_DIRECTORIES: Record<string, string[]> = {
     'https://acme-v02.api.letsencrypt.org/directory/',
   ],
   zerossl: ['https://acme.zerossl.com/v2/DV90'],
+  buypass: [
+    'https://api.buypass.com/acme/directory',
+    'https://buypass.com/acme/directory',
+  ],
+  google: [
+    'https://dv.acme-v02.api.pki.goog/directory',
+  ],
+  sslcom: [
+    'https://acme.ssl.com/sslcom-dv-rsa',
+    'https://acme.ssl.com/sslcom-dv-ecc',
+  ],
+  actalis: [
+    'https://acme.actalis.it/directory',
+  ],
 };
 
 const REQUEST_TIMEOUT_MS = 12000;
@@ -729,6 +743,10 @@ export async function handleVerifyOrder(body: {
     }
 
     if (challengeUrl) {
+      // For DNS challenges, wait for propagation before notifying the CA
+      if (challengeType === 'dns-01') {
+        await new Promise((resolve) => setTimeout(resolve, 15000));
+      }
       nonce = await respondToChallenge(challengeUrl, privateKey, accountUrl, nonce);
     }
   }
@@ -742,8 +760,8 @@ export async function handleVerifyOrder(body: {
       accountUrl,
       nonce,
       ['ready', 'valid'],
-      20,
-      3000
+      30,
+      5000
     );
     orderData = pollResult.data;
     nonce = pollResult.nonce;
