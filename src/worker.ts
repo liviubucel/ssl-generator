@@ -11,6 +11,10 @@ export interface Env {
   SSL_STORE?: KVNamespace;
   EAB_KID?: string;
   EAB_HMAC_KEY?: string;
+  ACTALIS_90_ME_KID?: string;
+  ACTALIS_90_HMAC_KEY?: string;
+  ACTALIS_1_ME_KID?: string;
+  ACTALIS_1_HMAC_KEY?: string;
   CF_API_TOKEN?: string;
   // Railway ACME engine URL — when set, all ACME calls are proxied through it
   // to avoid Cloudflare-edge → Let's Encrypt TLS handshake failures (HTTP 525).
@@ -67,6 +71,32 @@ function jsonResponse(data: object, status = 200): Response {
   });
 }
 
+function getEabCredentials(
+  env: Env,
+  ca: string
+): { eabKid?: string; eabHmacKey?: string } {
+  switch (ca) {
+    case 'letsencrypt':
+    case 'zerossl':
+      return {
+        eabKid: env.EAB_KID,
+        eabHmacKey: env.EAB_HMAC_KEY,
+      };
+    case 'actalis-90d':
+      return {
+        eabKid: env.ACTALIS_90_ME_KID,
+        eabHmacKey: env.ACTALIS_90_HMAC_KEY,
+      };
+    case 'actalis-1y':
+      return {
+        eabKid: env.ACTALIS_1_ME_KID,
+        eabHmacKey: env.ACTALIS_1_HMAC_KEY,
+      };
+    default:
+      return {};
+  }
+}
+
 async function handleApiRequest(
   request: Request,
   url: URL,
@@ -108,13 +138,13 @@ async function handleApiRequest(
             400
           );
         }
-        // EAB credentials come from environment secrets for ZeroSSL
+        const { eabKid, eabHmacKey } = getEabCredentials(env, ca);
         const result = await handleCreateOrder({
           domains,
           email,
           ca,
-          eabKid: env.EAB_KID,
-          eabHmacKey: env.EAB_HMAC_KEY,
+          eabKid,
+          eabHmacKey,
         });
         return jsonResponse(result);
       }

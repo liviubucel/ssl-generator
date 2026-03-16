@@ -7,6 +7,10 @@ export interface Env {
   SSL_STORE?: KVNamespace;
   EAB_KID?: string;
   EAB_HMAC_KEY?: string;
+  ACTALIS_90_ME_KID?: string;
+  ACTALIS_90_HMAC_KEY?: string;
+  ACTALIS_1_ME_KID?: string;
+  ACTALIS_1_HMAC_KEY?: string;
   CF_API_TOKEN?: string;
   RESEND_API_KEY?: string;
 }
@@ -32,6 +36,32 @@ export interface RenewalConfig {
 const RENEWAL_PREFIX = 'renewal:';
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const DNS_PROPAGATION_DELAY_MS = 15000;
+
+function getEabCredentials(
+  env: Env,
+  ca: string
+): { eabKid?: string; eabHmacKey?: string } {
+  switch (ca) {
+    case 'letsencrypt':
+    case 'zerossl':
+      return {
+        eabKid: env.EAB_KID,
+        eabHmacKey: env.EAB_HMAC_KEY,
+      };
+    case 'actalis-90d':
+      return {
+        eabKid: env.ACTALIS_90_ME_KID,
+        eabHmacKey: env.ACTALIS_90_HMAC_KEY,
+      };
+    case 'actalis-1y':
+      return {
+        eabKid: env.ACTALIS_1_ME_KID,
+        eabHmacKey: env.ACTALIS_1_HMAC_KEY,
+      };
+    default:
+      return {};
+  }
+}
 
 export async function saveRenewalConfig(
   kv: KVNamespace,
@@ -136,13 +166,15 @@ export async function handleScheduledRenewal(env: Env): Promise<void> {
     console.log(`Attempting renewal for: ${config.domains.join(', ')}`);
 
     try {
+      const { eabKid, eabHmacKey } = getEabCredentials(env, config.ca);
+
       // Create new ACME order
       const orderResult = await handleCreateOrder({
         domains: config.domains.join(','),
         email: config.email,
         ca: config.ca,
-        eabKid: env.EAB_KID,
-        eabHmacKey: env.EAB_HMAC_KEY,
+        eabKid,
+        eabHmacKey,
       });
 
       // For DNS challenges, auto-create TXT records if CF_API_TOKEN is available
