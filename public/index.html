@@ -514,10 +514,11 @@
         tutorialBar: ' For a step-by-step tutorial  — <a href="https://help.zebrabyte.ro/portal/ro/kb/hosting-securizat/certificate-ssl" target="_blank">Acces Help Center</a>',
         tosText: 'I agree to the <a href="https://www.zebrabyte.ro/legal" target="_blank" rel="noopener">Zebrabyte Terms &amp; Conditions</a> and the <a href="https://letsencrypt.org/documents/LE-SA-v1.3-September-21-2022.pdf" target="_blank" rel="noopener">Let\'s Encrypt Subscriber Agreement</a>.',
         tosError: 'Please accept the Terms & Conditions to continue.',
-        actalisWildcardUnsupported: 'Actalis does not support wildcard certificates at the moment. Please remove the wildcard domain or choose a different certificate authority.',
-        actalis1YearUnavailable: 'ZebraByte cannot issue Actalis 1 year certificates at the moment. Please choose Actalis 90 days or a different certificate authority.',
-        genericSslError: 'ZebraByte could not process the SSL request at the moment. Please try again later or choose a different certificate authority.',
-        genericVerifyError: 'ZebraByte could not complete the verification at the moment. Please try again in a few minutes.',
+        actalisWildcardUnsupported: 'Wildcard certificates for Actalis are not supported at the moment. Please remove the wildcard domain or choose a different certificate authority.',
+        actalis1YearUnavailable: 'Actalis 1 year certificates could not be issued with the current account configuration. Please choose Actalis 90 days or a different certificate authority.',
+        genericSslError: 'The SSL request could not be processed at the moment. Please try again later or choose a different certificate authority.',
+        genericVerifyError: 'The verification could not be completed at the moment. Please try again in a few minutes.',
+        invalidApiResponse: 'The service returned an invalid response. Please try again later.',
       },
       ro: {
         title: 'Generator Gratuit de Certificate SSL',
@@ -586,22 +587,25 @@
 
     function t(key) {
       if (key === 'actalisNote' && currentLang === 'ro') {
-        return 'ZebraByte nu suporta momentan certificate wildcard pentru Actalis. Eliminati wildcard-ul sau alegeti o alta autoritate de certificare.';
+        return 'Certificatele wildcard pentru Actalis nu sunt suportate momentan. Eliminati wildcard-ul sau alegeti o alta autoritate de certificare.';
       }
       if (key === 'actalisNote') {
-        return 'ZebraByte does not currently support wildcard certificates for Actalis. Remove the wildcard or choose a different certificate authority.';
+        return 'Wildcard certificates for Actalis are not supported at the moment. Remove the wildcard or choose a different certificate authority.';
       }
       if (key === 'actalisWildcardUnsupported' && currentLang === 'ro') {
-        return 'ZebraByte nu suporta momentan certificate wildcard pentru Actalis. Eliminati wildcard-ul sau alegeti o alta autoritate de certificare.';
+        return 'Certificatele wildcard pentru Actalis nu sunt suportate momentan. Eliminati wildcard-ul sau alegeti o alta autoritate de certificare.';
       }
       if (key === 'actalis1YearUnavailable' && currentLang === 'ro') {
-        return 'ZebraByte nu poate emite momentan certificate Actalis de 1 an. Va rugam alegeti Actalis 90 zile sau o alta autoritate de certificare.';
+        return 'Certificatele Actalis de 1 an nu pot fi emise cu configuratia actuala a contului. Va rugam alegeti Actalis 90 zile sau o alta autoritate de certificare.';
       }
       if (key === 'genericSslError' && currentLang === 'ro') {
-        return 'ZebraByte nu a putut procesa momentan cererea SSL. Incercati din nou mai tarziu sau alegeti o alta autoritate de certificare.';
+        return 'Cererea SSL nu a putut fi procesata momentan. Incercati din nou mai tarziu sau alegeti o alta autoritate de certificare.';
       }
       if (key === 'genericVerifyError' && currentLang === 'ro') {
-        return 'ZebraByte nu a putut finaliza momentan verificarea. Incercati din nou in cateva minute.';
+        return 'Verificarea nu a putut fi finalizata momentan. Incercati din nou in cateva minute.';
+      }
+      if (key === 'invalidApiResponse' && currentLang === 'ro') {
+        return 'Serviciul a returnat un raspuns invalid. Incercati din nou mai tarziu.';
       }
       return (translations[currentLang] && translations[currentLang][key]) || translations.en[key] || key;
     }
@@ -838,7 +842,15 @@
         case 'ORDER_VERIFICATION_PENDING':
           return t('genericVerifyError');
         default:
-          return fallbackMessage || t('genericSslError');
+          if (
+            fallbackMessage &&
+            !/^Failed to /i.test(fallbackMessage) &&
+            !/^Verification failed/i.test(fallbackMessage) &&
+            fallbackMessage.indexOf('HTTP ') === -1
+          ) {
+            return fallbackMessage;
+          }
+          return t('genericSslError');
       }
     }
 
@@ -868,9 +880,9 @@
         return t('genericVerifyError');
       }
       if (msg.includes('JSON.parse: unexpected character') || msg.includes('Unexpected token')) {
-        return 'API returned an invalid response format. Check Vercel Function logs for /api/order and /api/order/verify.';
+        return t('invalidApiResponse');
       }
-      return msg;
+      return t('genericSslError');
     }
     // ========== Create Order ==========
     orderForm.addEventListener('submit', async function(e) {

@@ -131,11 +131,11 @@ function detectApiErrorCode(message: string, ca?: string): string {
 function publicErrorMessage(errorCode: string): string {
   switch (errorCode) {
     case 'ACTALIS_WILDCARD_UNSUPPORTED':
-      return 'ZebraByte does not currently support wildcard certificates for Actalis.';
+      return 'Wildcard certificates for Actalis are not supported at the moment.';
     case 'ACTALIS_1Y_UNAVAILABLE':
-      return 'ZebraByte cannot issue Actalis 1 year certificates at the moment.';
+      return 'Actalis 1 year certificates could not be issued with the current account configuration.';
     case 'CA_ACCOUNT_VALIDATION_FAILED':
-      return 'The selected certificate authority could not validate the configured account credentials.';
+      return 'The selected certificate authority could not validate the current account configuration.';
     case 'CA_TEMPORARILY_UNAVAILABLE':
       return 'The selected certificate authority is temporarily unavailable.';
     case 'ORDER_VERIFICATION_PENDING':
@@ -166,6 +166,12 @@ function sanitizeApiError(error: unknown, ca?: string): {
     errorCode,
     status,
   };
+}
+
+function maskValue(value: string | undefined): string {
+  if (!value) return 'missing';
+  if (value.length <= 8) return 'set';
+  return `${value.slice(0, 4)}...${value.slice(-4)}`;
 }
 
 async function handleApiRequest(
@@ -316,6 +322,17 @@ async function handleApiRequest(
   } catch (error: any) {
     console.error('API Error:', error);
     const sanitized = sanitizeApiError(error, body.ca);
+    if (sanitized.errorCode === 'ACTALIS_1Y_UNAVAILABLE') {
+      const { eabKid, eabHmacKey } = getEabCredentials(env, 'actalis-1y');
+      console.error('Actalis 1 year diagnostic', {
+        ca: body.ca,
+        domains: body.domains,
+        email: body.email,
+        kidMask: maskValue(eabKid?.trim()),
+        kidLength: eabKid?.trim().length ?? 0,
+        hmacLength: eabHmacKey?.replace(/\s+/g, '').length ?? 0,
+      });
+    }
     return jsonResponse(
       { error: sanitized.error, errorCode: sanitized.errorCode },
       sanitized.status
