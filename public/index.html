@@ -442,7 +442,10 @@
       document.querySelectorAll('.ca-1y').forEach(el => el.style.display = validity === '1y' ? '' : 'none');
       // Selectează implicit primul CA vizibil
       const visibleCA = document.querySelectorAll(`#ca-group span${validity === '90d' ? '.ca-90d' : '.ca-1y'} input[type=radio]`);
-      if (visibleCA.length) visibleCA[0].checked = true;
+      if (visibleCA.length) {
+        visibleCA[0].checked = true;
+        visibleCA[0].dispatchEvent(new Event('change', { bubbles: true }));
+      }
     }
     document.querySelectorAll('input[name="validity"]').forEach(el => {
       el.addEventListener('change', updateCAOptions);
@@ -511,6 +514,7 @@
         tutorialBar: ' For a step-by-step tutorial  — <a href="https://help.zebrabyte.ro/portal/ro/kb/hosting-securizat/certificate-ssl" target="_blank">Acces Help Center</a>',
         tosText: 'I agree to the <a href="https://www.zebrabyte.ro/legal" target="_blank" rel="noopener">Zebrabyte Terms &amp; Conditions</a> and the <a href="https://letsencrypt.org/documents/LE-SA-v1.3-September-21-2022.pdf" target="_blank" rel="noopener">Let\'s Encrypt Subscriber Agreement</a>.',
         tosError: 'Please accept the Terms & Conditions to continue.',
+        actalisWildcardUnsupported: 'Actalis does not support wildcard certificates at the moment. Please remove the wildcard domain or choose a different certificate authority.',
       },
       ro: {
         title: 'Generator Gratuit de Certificate SSL',
@@ -578,6 +582,9 @@
     let currentLang = localStorage.getItem('ssl-gen-lang') || 'en';
 
     function t(key) {
+      if (key === 'actalisWildcardUnsupported' && currentLang === 'ro') {
+        return 'Actalis nu suporta momentan certificate wildcard. Eliminati wildcard-ul sau alegeti o alta autoritate de certificare.';
+      }
       return (translations[currentLang] && translations[currentLang][key]) || translations.en[key] || key;
     }
 
@@ -611,6 +618,7 @@
       document.title = t('title');
       // Update wildcard button state
       updateWildcardButton();
+      updateCaNotes();
     }
 
     // ========== State ==========
@@ -628,13 +636,34 @@
     var verifyBtn = document.getElementById('verify-btn');
     var challengesList = document.getElementById('challenges-list');
     var zerosslNote = document.getElementById('zerossl-note');
+    var googleNote = document.getElementById('google-note');
+    var actalisNote = document.getElementById('actalis-note');
     var leNote = document.getElementById('le-note');
+
+    function getSelectedCa() {
+      var selected = document.querySelector('input[name="ca"]:checked');
+      return selected ? selected.value : '';
+    }
+
+    function isActalisCa(ca) {
+      return ca === 'actalis-90d' || ca === 'actalis-1y';
+    }
+
+    function updateCaNotes() {
+      var selectedCa = getSelectedCa();
+      zerosslNote.classList.toggle('hidden', selectedCa !== 'zerossl');
+      googleNote.classList.toggle('hidden', selectedCa !== 'google');
+      actalisNote.classList.toggle('hidden', !isActalisCa(selectedCa));
+      leNote.classList.toggle('hidden', selectedCa !== 'letsencrypt');
+    }
 
     // ========== CA Selection ==========
     document.querySelectorAll('input[name="ca"]').forEach(function(radio) {
-      radio.addEventListener('change', function(e) {
-        zerosslNote.classList.toggle('hidden', e.target.value !== 'zerossl');
-        leNote.classList.toggle('hidden', e.target.value !== 'letsencrypt');
+      radio.addEventListener('change', function() {
+        updateCaNotes();
+        if (hasWildcard() && isActalisCa(getSelectedCa())) {
+          showError(t('actalisWildcardUnsupported'));
+        }
       });
     });
 
@@ -650,6 +679,10 @@
 
     function toggleWildcard() {
       var val = domainsInput.value.trim();
+      if (!hasWildcard() && isActalisCa(getSelectedCa())) {
+        showError(t('actalisWildcardUnsupported'));
+        return;
+      }
       if (hasWildcard()) {
         // Remove wildcard — keep only base domains (strip *. prefix)
         domainsInput.value = val.split(',').map(function(d) {
@@ -800,6 +833,10 @@
 
       if (!data.domains || !data.email) {
         showError(t('fillRequired'));
+        return;
+      }
+      if (isActalisCa(data.ca) && hasWildcard()) {
+        showError(t('actalisWildcardUnsupported'));
         return;
       }
 
@@ -1063,7 +1100,10 @@
       orderForm.reset();
       autoRenewFields.classList.add('hidden');
       zerosslNote.classList.add('hidden');
+      googleNote.classList.add('hidden');
+      actalisNote.classList.add('hidden');
       updateWildcardButton();
+      updateCaNotes();
       updateChallengeOptions();
     }
 

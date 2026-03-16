@@ -618,6 +618,14 @@ export async function handleCreateOrder(body: {
   if (domains.length === 0) throw new Error('At least one domain is required');
   if (!email) throw new Error('Email is required');
   if (!ACME_DIRECTORIES[ca]) throw new Error('Invalid CA');
+  if (
+    (ca === 'actalis-90d' || ca === 'actalis-1y') &&
+    domains.some((domain) => domain.startsWith('*.'))
+  ) {
+    throw new Error(
+      'Actalis does not support wildcard certificates at the moment. Please remove the wildcard domain or choose a different certificate authority.'
+    );
+  }
 
   // ZeroSSL requires EAB
   if (ca === 'zerossl' && (!eabKid || !eabHmacKey)) {
