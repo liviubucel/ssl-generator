@@ -515,6 +515,9 @@
         tosText: 'I agree to the <a href="https://www.zebrabyte.ro/legal" target="_blank" rel="noopener">Zebrabyte Terms &amp; Conditions</a> and the <a href="https://letsencrypt.org/documents/LE-SA-v1.3-September-21-2022.pdf" target="_blank" rel="noopener">Let\'s Encrypt Subscriber Agreement</a>.',
         tosError: 'Please accept the Terms & Conditions to continue.',
         actalisWildcardUnsupported: 'Actalis does not support wildcard certificates at the moment. Please remove the wildcard domain or choose a different certificate authority.',
+        actalis1YearUnavailable: 'ZebraByte cannot issue Actalis 1 year certificates at the moment. Please choose Actalis 90 days or a different certificate authority.',
+        genericSslError: 'ZebraByte could not process the SSL request at the moment. Please try again later or choose a different certificate authority.',
+        genericVerifyError: 'ZebraByte could not complete the verification at the moment. Please try again in a few minutes.',
       },
       ro: {
         title: 'Generator Gratuit de Certificate SSL',
@@ -582,8 +585,23 @@
     let currentLang = localStorage.getItem('ssl-gen-lang') || 'en';
 
     function t(key) {
+      if (key === 'actalisNote' && currentLang === 'ro') {
+        return 'ZebraByte nu suporta momentan certificate wildcard pentru Actalis. Eliminati wildcard-ul sau alegeti o alta autoritate de certificare.';
+      }
+      if (key === 'actalisNote') {
+        return 'ZebraByte does not currently support wildcard certificates for Actalis. Remove the wildcard or choose a different certificate authority.';
+      }
       if (key === 'actalisWildcardUnsupported' && currentLang === 'ro') {
-        return 'Actalis nu suporta momentan certificate wildcard. Eliminati wildcard-ul sau alegeti o alta autoritate de certificare.';
+        return 'ZebraByte nu suporta momentan certificate wildcard pentru Actalis. Eliminati wildcard-ul sau alegeti o alta autoritate de certificare.';
+      }
+      if (key === 'actalis1YearUnavailable' && currentLang === 'ro') {
+        return 'ZebraByte nu poate emite momentan certificate Actalis de 1 an. Va rugam alegeti Actalis 90 zile sau o alta autoritate de certificare.';
+      }
+      if (key === 'genericSslError' && currentLang === 'ro') {
+        return 'ZebraByte nu a putut procesa momentan cererea SSL. Incercati din nou mai tarziu sau alegeti o alta autoritate de certificare.';
+      }
+      if (key === 'genericVerifyError' && currentLang === 'ro') {
+        return 'ZebraByte nu a putut finaliza momentan verificarea. Incercati din nou in cateva minute.';
       }
       return (translations[currentLang] && translations[currentLang][key]) || translations.en[key] || key;
     }
@@ -807,8 +825,48 @@
       }
     }
 
+    function mapErrorCodeToMessage(errorCode, fallbackMessage) {
+      switch (errorCode) {
+        case 'ACTALIS_WILDCARD_UNSUPPORTED':
+          return t('actalisWildcardUnsupported');
+        case 'ACTALIS_1Y_UNAVAILABLE':
+          return t('actalis1YearUnavailable');
+        case 'CA_TEMPORARILY_UNAVAILABLE':
+        case 'CA_ACCOUNT_VALIDATION_FAILED':
+        case 'SSL_GENERATION_FAILED':
+          return t('genericSslError');
+        case 'ORDER_VERIFICATION_PENDING':
+          return t('genericVerifyError');
+        default:
+          return fallbackMessage || t('genericSslError');
+      }
+    }
+
+    function createApiError(result, fallbackMessage) {
+      return {
+        message: mapErrorCodeToMessage(result && result.errorCode, (result && result.error) || fallbackMessage),
+        errorCode: result && result.errorCode ? result.errorCode : '',
+      };
+    }
+
     function normalizeErrorMessage(err) {
+      var errorCode = err && (err.errorCode || err.code) ? (err.errorCode || err.code) : '';
+      if (errorCode) {
+        return mapErrorCodeToMessage(errorCode, err && err.message ? err.message : '');
+      }
       var msg = (err && err.message) ? err.message : String(err || 'Unknown error');
+      if (msg.includes('Actalis does not support wildcard certificates')) {
+        return t('actalisWildcardUnsupported');
+      }
+      if (/eab signature verification failed|eab kid lookup failed/i.test(msg)) {
+        return t('actalis1YearUnavailable');
+      }
+      if (/Failed to fetch ACME directory|temporarily unavailable|temporarily unreachable|HTTP 525/i.test(msg)) {
+        return t('genericSslError');
+      }
+      if (/Challenge verification pending or failed|Certificate is still being issued/i.test(msg)) {
+        return t('genericVerifyError');
+      }
       if (msg.includes('JSON.parse: unexpected character') || msg.includes('Unexpected token')) {
         return 'API returned an invalid response format. Check Vercel Function logs for /api/order and /api/order/verify.';
       }
@@ -852,7 +910,10 @@
         var result = await parseApiResponse(resp);
 
         if (!resp.ok || result.error) {
-          throw new Error(result.error || ('Failed to create order (HTTP ' + resp.status + ')'));
+          throw createApiError(
+            result,
+            'Failed to create order (HTTP ' + resp.status + ')'
+          );
         }
 
         if (!Array.isArray(result.authorizations)) {
@@ -1039,7 +1100,10 @@
         var result = await parseApiResponse(resp);
 
         if (!resp.ok || result.error) {
-          throw new Error(result.error || ('Verification failed (HTTP ' + resp.status + ')'));
+          throw createApiError(
+            result,
+            'Verification failed (HTTP ' + resp.status + ')'
+          );
         }
 
         if (result.status === 'valid' && result.certificate) {
@@ -1051,7 +1115,7 @@
           certSection.classList.remove('hidden');
           showSuccess(t('certSuccess'));
         } else {
-          showError(result.error || t('verifyFailed'));
+          showError(mapErrorCodeToMessage(result.errorCode, result.error || t('verifyFailed')));
         }
       } catch (err) {
         showError(normalizeErrorMessage(err));

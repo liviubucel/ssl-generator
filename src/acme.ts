@@ -601,6 +601,16 @@ function isLetsEncryptDirectory525(error: unknown): boolean {
   );
 }
 
+function normalizeOptionalString(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function normalizeEabHmacKey(value: string | undefined): string | undefined {
+  const normalized = value?.replace(/\s+/g, '');
+  return normalized ? normalized : undefined;
+}
+
 // Main: Create ACME Order
 export async function handleCreateOrder(body: {
   domains: string;
@@ -609,7 +619,10 @@ export async function handleCreateOrder(body: {
   eabKid?: string;
   eabHmacKey?: string;
 }): Promise<CreateOrderResult> {
-  const { email, ca, eabKid, eabHmacKey } = body;
+  const email = body.email.trim();
+  const ca = body.ca.trim();
+  const eabKid = normalizeOptionalString(body.eabKid);
+  const eabHmacKey = normalizeEabHmacKey(body.eabHmacKey);
   const domains = body.domains
     .split(',')
     .map((d) => d.trim())
@@ -636,14 +649,38 @@ export async function handleCreateOrder(body: {
   let actalisEabKid = undefined;
   let actalisEabHmacKey = undefined;
   if (ca === 'actalis-90d') {
-    actalisEabKid = eabKid || (typeof process !== 'undefined' ? process.env.ACTALIS_90_ME_KID : (globalThis.ACTALIS_90_ME_KID || undefined));
-    actalisEabHmacKey = eabHmacKey || (typeof process !== 'undefined' ? process.env.ACTALIS_90_HMAC_KEY : (globalThis.ACTALIS_90_HMAC_KEY || undefined));
+    actalisEabKid =
+      eabKid ||
+      normalizeOptionalString(
+        typeof process !== 'undefined'
+          ? process.env.ACTALIS_90_ME_KID
+          : (globalThis.ACTALIS_90_ME_KID || undefined)
+      );
+    actalisEabHmacKey =
+      eabHmacKey ||
+      normalizeEabHmacKey(
+        typeof process !== 'undefined'
+          ? process.env.ACTALIS_90_HMAC_KEY
+          : (globalThis.ACTALIS_90_HMAC_KEY || undefined)
+      );
     if (!actalisEabKid || !actalisEabHmacKey) {
       throw new Error('Actalis 90d requires EAB credentials (KID and HMAC Key)');
     }
   } else if (ca === 'actalis-1y') {
-    actalisEabKid = eabKid || (typeof process !== 'undefined' ? process.env.ACTALIS_1_ME_KID : (globalThis.ACTALIS_1_ME_KID || undefined));
-    actalisEabHmacKey = eabHmacKey || (typeof process !== 'undefined' ? process.env.ACTALIS_1_HMAC_KEY : (globalThis.ACTALIS_1_HMAC_KEY || undefined));
+    actalisEabKid =
+      eabKid ||
+      normalizeOptionalString(
+        typeof process !== 'undefined'
+          ? process.env.ACTALIS_1_ME_KID
+          : (globalThis.ACTALIS_1_ME_KID || undefined)
+      );
+    actalisEabHmacKey =
+      eabHmacKey ||
+      normalizeEabHmacKey(
+        typeof process !== 'undefined'
+          ? process.env.ACTALIS_1_HMAC_KEY
+          : (globalThis.ACTALIS_1_HMAC_KEY || undefined)
+      );
     if (!actalisEabKid || !actalisEabHmacKey) {
       throw new Error('Actalis 1y requires EAB credentials (KID and HMAC Key)');
     }

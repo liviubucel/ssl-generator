@@ -97,11 +97,84 @@ function getEabCredentials(
   }
 }
 
+function detectApiErrorCode(message: string, ca?: string): string {
+  if (message.includes('Actalis does not support wildcard certificates')) {
+    return 'ACTALIS_WILDCARD_UNSUPPORTED';
+  }
+
+  if (
+    ca === 'actalis-1y' &&
+    /eab signature verification failed|eab kid lookup failed/i.test(message)
+  ) {
+    return 'ACTALIS_1Y_UNAVAILABLE';
+  }
+
+  if (/eab signature verification failed|eab kid lookup failed/i.test(message)) {
+    return 'CA_ACCOUNT_VALIDATION_FAILED';
+  }
+
+  if (
+    /Failed to fetch ACME directory|temporarily unreachable|temporarily unavailable|HTTP 525|Polling timed out/i.test(
+      message
+    )
+  ) {
+    return 'CA_TEMPORARILY_UNAVAILABLE';
+  }
+
+  if (/Challenge verification pending or failed|Certificate is still being issued/i.test(message)) {
+    return 'ORDER_VERIFICATION_PENDING';
+  }
+
+  return 'SSL_GENERATION_FAILED';
+}
+
+function publicErrorMessage(errorCode: string): string {
+  switch (errorCode) {
+    case 'ACTALIS_WILDCARD_UNSUPPORTED':
+      return 'ZebraByte does not currently support wildcard certificates for Actalis.';
+    case 'ACTALIS_1Y_UNAVAILABLE':
+      return 'ZebraByte cannot issue Actalis 1 year certificates at the moment.';
+    case 'CA_ACCOUNT_VALIDATION_FAILED':
+      return 'The selected certificate authority could not validate the configured account credentials.';
+    case 'CA_TEMPORARILY_UNAVAILABLE':
+      return 'The selected certificate authority is temporarily unavailable.';
+    case 'ORDER_VERIFICATION_PENDING':
+      return 'Domain verification is still in progress.';
+    default:
+      return 'SSL generation is temporarily unavailable.';
+  }
+}
+
+function sanitizeApiError(error: unknown, ca?: string): {
+  error: string;
+  errorCode: string;
+  status: number;
+} {
+  const message = error instanceof Error ? error.message : String(error || '');
+  const errorCode = detectApiErrorCode(message, ca);
+  const status =
+    errorCode === 'ACTALIS_WILDCARD_UNSUPPORTED' ||
+    errorCode === 'ACTALIS_1Y_UNAVAILABLE' ||
+    errorCode === 'CA_ACCOUNT_VALIDATION_FAILED'
+      ? 400
+      : errorCode === 'ORDER_VERIFICATION_PENDING'
+      ? 409
+      : 500;
+
+  return {
+    error: publicErrorMessage(errorCode),
+    errorCode,
+    status,
+  };
+}
+
 async function handleApiRequest(
   request: Request,
   url: URL,
   env: Env
 ): Promise<Response> {
+  let body: Record<string, any> = {};
+
   // Handle CORS preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders() });
@@ -127,7 +200,7 @@ async function handleApiRequest(
   }
 
   try {
-    const body = await request.json();
+    body = await request.json();
 
     switch (url.pathname) {
       case '/api/order': {
@@ -187,6 +260,12 @@ async function handleApiRequest(
           challengeType,
         });
 
+        if (result.error) {
+          const sanitized = sanitizeApiError(result.error, ca);
+          result.error = sanitized.error;
+          (result as Record<string, unknown>).errorCode = sanitized.errorCode;
+        }
+
         // If certificate issued and auto-renewal requested, save to KV
         if (
           result.status === 'valid' &&
@@ -236,9 +315,10 @@ async function handleApiRequest(
     }
   } catch (error: any) {
     console.error('API Error:', error);
+    const sanitized = sanitizeApiError(error, body.ca);
     return jsonResponse(
-      { error: error.message || 'Internal server error' },
-      500
+      { error: sanitized.error, errorCode: sanitized.errorCode },
+      sanitized.status
     );
   }
 }
